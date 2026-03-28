@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TABCORE – Tablet Inspection Management System</title>
+<style>
+  :root {
+    --bg:        #080f1c;
+    --surface:   #0d1a2e;
+    --card:      #0f2040;
+    --card2:     #112244;
+    --border:    #1a3050;
+    --cyan:      #00d4ff;
+    --green:     #00e5a0;
+    --red:       #ff4060;
+    --yellow:    #ffb830;
+    --purple:    #8b5cf6;
+    --text:      #ddeeff;
+    --muted:     #4a6a8a;
+    --font-head: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    --font-body: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: var(--font-body); display: flex; height: 100vh; overflow: hidden; }
+
+  ::-webkit-scrollbar { width: 5px; }
+  ::-webkit-scrollbar-track { background: var(--surface); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
+  #sidebar { width: 240px; min-width: 240px; background: var(--surface); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow-y: auto; }
+  
+  .sidebar-logo { height: 70px; min-height: 70px; display: flex; align-items: center; padding: 0 18px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(0, 212, 255, 0.03) 0%, transparent 100%); }
+  .logo-row { display: flex; align-items: center; gap: 10px; width: 100%; }
+  .logo-icon { width: 38px; height: 38px; background: var(--cyan); border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; box-shadow: 0 0 12px rgba(0,212,255,0.4); color: #000; flex-shrink: 0;}
+  .logo-text-wrap { display: flex; flex-direction: column; justify-content: center; }
+  .logo-title-row { display: flex; align-items: center; gap: 6px; }
+  .logo-text { font-family: var(--font-head); font-size: 18px; font-weight: 800; color: var(--text); letter-spacing: 1.5px; line-height: 1;}
+  .logo-version { font-size: 9px; font-weight: 700; background: rgba(0, 212, 255, 0.15); color: var(--cyan); padding: 2px 5px; border-radius: 4px; border: 1px solid rgba(0, 212, 255, 0.3); letter-spacing: 1px;}
+  .logo-sub { font-size: 9px; color: #7a9aba; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-top: 3px; }  
+  
+  .nav-section { padding: 14px 10px 4px; }
+  .nav-label { font-size: 10px; color: var(--muted); letter-spacing: 2px; padding: 0 8px 6px; font-family: var(--font-head); }
+  .nav-item { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 8px; cursor: pointer; margin-bottom: 2px; font-size: 14px; color: #7a9aba; text-decoration: none; transition: all 0.2s; }
+  .nav-item:hover { background: rgba(0,212,255,0.06); color: var(--text); }
+  .nav-item.active { background: rgba(0,212,255,0.12); color: var(--cyan); border-color: rgba(0,212,255,0.2); }
+  .nav-item .nav-icon { font-size: 17px; width: 22px; text-align: center; }
+
+  .sidebar-footer { margin-top: auto; padding: 14px 14px 18px; border-top: 1px solid var(--border); }
+  .user-chip { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--card); border-radius: 10px; border: 1px solid var(--border); }
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--cyan); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #000; font-family: var(--font-head); text-transform:uppercase;}
+  .user-name { font-size: 13px; font-weight: 600; color: var(--text); }
+  .user-role { font-size: 11px; color: var(--muted); }
+  .online-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); margin-left: auto; box-shadow: 0 0 6px var(--green); }
+
+  #main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar { height: 70px; background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; }
+  .topbar-title { font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--text); letter-spacing: 1px; }
+  .topbar-sub { font-size: 12px; color: var(--muted); }
+  
+  .search-container { position: relative; }
+  .search-input-wrapper { display: flex; align-items: center; background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; width: 300px; transition: all 0.3s ease; }
+  .search-input-wrapper:focus-within { border-color: var(--cyan); box-shadow: 0 0 8px rgba(0,212,255,0.2); }
+  .search-input { background: transparent; border: none; color: var(--text); font-size: 13px; width: 100%; outline: none; margin-left: 8px; }
+  .search-results { position: absolute; top: 45px; right: 0; width: 400px; background: var(--surface); border: 1px solid var(--cyan); border-radius: 8px; box-shadow: 0 10px 30px rgba(0,0,0,0.8); z-index: 1000; display: none; overflow: hidden; }
+  .search-item { padding: 12px 15px; border-bottom: 1px solid var(--border); transition: 0.2s; text-align: left; }
+  .search-item:hover { background: var(--card); }
+  
+  .btn-download-sm { background: transparent; border: 1px solid var(--cyan); color: var(--cyan); padding: 4px 10px; border-radius: 4px; font-size: 11px; text-decoration: none; font-weight: 600; display: inline-block;}
+  .live-badge { border: 1px solid rgba(16, 185, 129, 0.4); border-radius: 20px; padding: 4px 10px; color: var(--green); font-size: 11px; font-weight: 700; display: flex; align-items: center; gap: 6px; background: rgba(16, 185, 129, 0.05); }
+  .live-dot { width: 6px; height: 6px; background: var(--green); border-radius: 50%; box-shadow: 0 0 6px var(--green); animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
+
+  .btn { padding: 8px 16px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-weight: 600; transition: all 0.2s; text-decoration: none; display: inline-block;}
+  .btn-primary { background: var(--cyan); color: #000; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-ghost:hover { border-color: var(--cyan); color: var(--cyan); }
+
+  /* 🟢 BUG FIX: අතුරුදහන් වෙලා තිබ්බ btn-secondary එක හැදුවා (timeline.txt එකට ඕනේ වෙනවා) */
+  .btn-secondary { background: var(--card2); border: 1px solid var(--border); color: var(--text); }
+  .btn-secondary:hover { background: var(--surface); border-color: var(--cyan); color: var(--cyan); }
+
+  #content { flex: 1; overflow-y: auto; padding: 24px; }
+
+  /* =========================================================
+     🔴 GLOBAL TABLE & BADGE CSS (හැම පිටුවකටම අදාලයි) 🔴
+     ========================================================= */
+  .table-wrap { background: var(--card); border: 1px solid var(--border); border-radius: 14px; overflow: hidden; margin-bottom: 20px; }
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { font-family: var(--font-head); font-size: 11px; color: var(--muted); padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--border); background: var(--surface); text-transform: uppercase; letter-spacing: 1px; }
+  .data-table td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid var(--border); }
+  .data-table tr:hover td { background: rgba(0,212,255,0.03); }
+  
+  .badge { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; display: inline-block; letter-spacing: 0.5px; }
+  .badge-good { background: rgba(0,229,160,0.15); color: var(--green); border: 1px solid rgba(0,229,160,0.3); }
+  .badge-defective { background: rgba(255,64,96,0.15); color: var(--red); border: 1px solid rgba(255,64,96,0.3); }
+  .badge-pending { background: rgba(255,184,48,0.15); color: var(--yellow); border: 1px solid rgba(255,184,48,0.3); }
+  .badge-locked { background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+  
+  .tech-tag { background: rgba(0,212,255,0.1); color: var(--cyan); padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 600; display: inline-block;}
+
+  /* 🟢 BUG FIX: අතුරුදහන් වෙලා තිබ්බ section-card එක හැදුවා (inspect.txt, edit.txt, officers.txt වලට අදාලයි) */
+  .section-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+
+  /* 🟢 BUG FIX: අතුරුදහන් වෙලා තිබ්බ header-flex එක හැදුවා (audit.txt, timeline.txt වලට අදාලයි) */
+  .header-flex {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+  }
+</style>
+</head>
+<body>
+
+<div id="sidebar">
+  
+  <div class="sidebar-logo">
+    <div class="logo-row">
+      <div class="logo-icon">📱</div>
+      <div class="logo-text-wrap">
+        <div class="logo-title-row">
+            <span class="logo-text">TABCORE</span>
+            <span class="logo-version">v2.0</span>
+        </div>
+        <div class="logo-sub">Dept. of Census & Stat</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="nav-section">
+    <div class="nav-label">MAIN</div>
+    <a href="/" class="nav-item"><span class="nav-icon">🏠 </span> Dashboard</a>
+    <a href="/register" class="nav-item"><span class="nav-icon">✏️</span> Register Tablet</a>
+    <a href="/inspection" class="nav-item"><span class="nav-icon">🔍</span> Inspection Queue</a>
+    <a href="/verified" class="nav-item"><span class="nav-icon">✅</span> Verified Records</a>
+    <a href="/defects" class="nav-item"><span class="nav-icon">⚠️</span> Issues / Defects</a>
+    <a href="/accessories" class="nav-item"><span class="nav-icon">📦</span> Accessories Log</a>
+    <a href="{{ url_for('inventory') }}" class="nav-item"><span class="nav-icon">📦</span> Bulk Inventory</a>
+   </div>
+
+  <div class="nav-section">
+    <div class="nav-label">REPORTS</div>
+    <a href="/reports" class="nav-item"><span class="nav-icon">📊</span> Division Report</a>
+    <a href="/export" class="nav-item"><span class="nav-icon">📄</span> Export Data</a>
+    <a href="/history" class="nav-item"><span class="nav-icon">🗂️</span> Batch History</a>
+  </div>
+
+  {% if current_user.role == 'Admin' %}
+<div class="nav-section">
+    <div class="nav-label">SYSTEM</div>
+    <a href="/officers" class="nav-item"><span class="nav-icon">👥</span> Officers</a>
+    <a href="/performance" class="nav-item"><span class="nav-icon">📈</span> Team Performance</a>
+    <a href="/settings" class="nav-item"><span class="nav-icon">⚙️</span> Settings</a>
+    <a href="/audit" class="nav-item"><span class="nav-icon">🔐</span> Audit Log</a>
+    <a href="/trash" class="nav-item"><span class="nav-icon">🗑️</span> Trash Bin</a>
+  </div>
+  {% endif %}
+ <div class="sidebar-footer">
+      <a href="/logout" style="text-decoration:none;">
+      <div class="user-chip">
+        <div class="user-avatar">{{ current_user.name[:2] }}</div>
+        <div><div class="user-name">{{ current_user.name }}</div><div class="user-role">{{ current_user.role }} (Logout)</div></div>
+        <div class="online-dot"></div>
+      </div>
+    </a>
+  </div>
+</div>
+
+<div id="main">
+  <div class="topbar">
+    <div>
+      <div class="topbar-title">OPERATIONS COMMAND CENTER</div>
+      <div class="topbar-sub">Live Database View · Dept. of Census & Statistics</div>
+    </div>
+    <div style="display: flex; gap: 15px; align-items: center;">
+      <div class="search-container">
+        <div class="search-input-wrapper">
+            <span style="color:var(--muted); transform: rotate(-45deg); display:inline-block;">⚲</span>
+            <input type="text" class="search-input" id="globalSearch" placeholder="Search S/N, IMEI, ID..." autocomplete="off">
+        </div>
+        <div class="search-results" id="searchResults"></div>
+      </div>
+      <div class="live-badge"><div class="live-dot"></div> LIVE</div>
+      <a href="/register" class="btn btn-primary">+ Register Tablet</a>
+    </div>
+  </div>
+
+  <div id="content">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script>
+    const searchInput = document.getElementById('globalSearch');
+    const searchResults = document.getElementById('searchResults');
+    searchInput.addEventListener('input', async function() {
+        const query = this.value.trim();
+        if (query.length < 2) { searchResults.style.display = 'none'; return; }
+        try {
+            const response = await fetch(`/search?q=${encodeURIComponent(query)}`);
+            const data = await response.json();
+            if (data.length > 0) {
+                searchResults.innerHTML = data.map(t => {
+                    let badgeColor = t.status === 'Passed' ? '#00e5a0' : (t.status === 'Defective' ? '#ff4060' : '#ffb830');
+                    return `
+                        <div class="search-item">
+                            <div style="font-size:15px; font-weight:bold; color:var(--text); margin-bottom:5px; display:flex; justify-content:space-between;">
+                                <span>T-${t.id} | ${t.brand}</span>
+                                <span style="font-size:10px; padding:3px 8px; border-radius:4px; border:1px solid ${badgeColor}; color:${badgeColor};">${t.status}</span>
+                            </div>
+                            <div style="font-size:12px; color:var(--muted); margin-bottom:10px;">S/N: ${t.serial_number} &nbsp;|&nbsp; IMEI: ${t.imei_number}</div>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:11px; color:var(--muted);">Insp. By: ${t.inspected_by || 'N/A'}</span>
+                                <a href="/export_single/${t.id}" class="btn-download-sm">📄 Download Report</a>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+                searchResults.style.display = 'block';
+            } else {
+                searchResults.innerHTML = '<div class="search-item" style="text-align:center; color:var(--muted);">No matching tablets found.</div>';
+                searchResults.style.display = 'block';
+            }
+        } catch (e) { console.error('Search error:', e); }
+    });
+    document.addEventListener('click', function(e) {
+        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
+</script>
+<style>
+    /* සයිඩ් බාර් එක ලොක් කිරීම */
+    #sidebar {
+        height: 100vh !important;
+        overflow-y: auto !important;
+    }
+    #sidebar::-webkit-scrollbar { width: 5px; }
+    #sidebar::-webkit-scrollbar-thumb { background: #1e2f4d; border-radius: 5px; }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        var sidebar = document.getElementById('sidebar'); 
+        
+        if (sidebar) {
+            // 1. මෙමරි එකෙන් පරණ ස්ක්‍රෝල් එක අරන් කිසිම පමාවක් නැතුව සෙට් කරනවා
+            var savedScroll = sessionStorage.getItem('sidebarScrollPos');
+            if (savedScroll !== null) {
+                sidebar.scrollTop = parseInt(savedScroll, 10);
+            }
+
+            // 2. URL එකෙන් අදාළ ලින්ක් එක හොයාගෙන active කරනවා
+            var currentPath = window.location.pathname;
+            var activeItem = document.querySelector('#sidebar .nav-item.active');
+            
+            if (!activeItem) {
+                var links = document.querySelectorAll('#sidebar .nav-item');
+                for (var i = 0; i < links.length; i++) {
+                    if (links[i].getAttribute('href') === currentPath || (links[i].getAttribute('href') !== '/' && currentPath.startsWith(links[i].getAttribute('href')))) {
+                        links[i].classList.add('active'); 
+                        break;
+                    }
+                }
+            }
+
+            // 3. සයිඩ් බාර් එක ස්ක්‍රෝල් කරද්දී අලුත් තැන සේව් කරනවා
+            sidebar.addEventListener('scroll', function() {
+                sessionStorage.setItem('sidebarScrollPos', sidebar.scrollTop);
+            });
+
+            // 4. ලින්ක් එකක් ක්ලික් කරද්දීත් තැන සේව් කරනවා
+            var allLinks = document.querySelectorAll('#sidebar .nav-item');
+            allLinks.forEach(function(link) {
+                link.addEventListener('click', function() {
+                    sessionStorage.setItem('sidebarScrollPos', sidebar.scrollTop);
+                });
+            });
+        }
+    });
+</script>
+</body>
+</html>

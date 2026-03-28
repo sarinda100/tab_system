@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-group { margin-bottom: 0; }
+  label { font-size: 11px; color: var(--muted); letter-spacing: 1.5px; display: block; margin-bottom: 7px; font-family: var(--font-head); font-weight: bold; }
+  input, select {
+    width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px;
+    font-family: var(--font-body); outline: none; transition: border-color 0.2s; }
+  input:focus, select:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  .bulk-upload-card { background: rgba(0, 212, 255, 0.05); border: 1px dashed var(--cyan); border-radius: 12px; padding: 24px; margin-bottom: 25px; }
+  .excel-warning { background: rgba(255, 184, 48, 0.1); border-left: 4px solid var(--yellow); padding: 12px; margin-bottom: 20px; border-radius: 4px; }
+</style>
+
+<div class="bulk-upload-card">
+  <div style="font-family: var(--font-head); font-size: 17px; font-weight: 700; color: var(--cyan); margin-bottom: 15px;">
+    🚀 Corporate Bulk Registration
+  </div>
+
+  <div class="excel-warning">
+    <div style="color: var(--yellow); font-weight: bold; font-size: 13px; margin-bottom: 5px;">⚡ Pro Tip: Excel Formatting</div>
+    <div style="font-size: 12px; color: var(--text); line-height: 1.5;">
+        Excel often corrupts IMEI numbers into scientific format (e.g., 3.57E+14). <strong>TabCore will automatically try to recover these.</strong> However, for best results, format your IMEI column as <strong>'Text'</strong> in Excel before saving. </div>
+  </div>
+
+  <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px;">
+      <div>
+          <a href="{{ url_for('download_template') }}" class="btn" style="background: var(--surface); border: 1px solid var(--cyan); color: var(--cyan); font-size: 12px; padding: 8px 16px;">
+              📥 Download Master Template
+          </a>
+      </div>
+      
+      <form method="POST" enctype="multipart/form-data" style="display: flex; gap: 10px; flex-grow: 1; max-width: 500px;">
+        <input type="file" name="file" accept=".csv" required style="padding: 7px; background: var(--bg); border: 1px solid var(--border);">
+        <button type="submit" class="btn btn-primary" style="white-space: nowrap;">Upload CSV ↑</button>
+      </form>
+  </div>
+</div>
+
+<div class="section-card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div style="font-family: var(--font-head); font-size: 18px; font-weight: 700; color: var(--cyan);">📝 Individual Registration</div>
+    <div style="font-size: 11px; color: var(--muted); letter-spacing: 1px; font-weight: bold;">LIVE SYSTEM ACTIVE</div>
+  </div>
+
+  {% if error %}
+  <div style="background: rgba(255,64,96,0.1); border: 1px solid var(--red); border-radius: 8px; padding: 12px; color: var(--red); margin-bottom: 20px; font-size: 13px; font-weight: bold; text-align: center;">
+    ⚠️ {{ error }}
+  </div>
+  {% endif %}
+
+  <form method="POST">
+    <div class="form-grid">
+      <div class="form-group">
+        <label>DISTRICT OF ORIGIN</label>
+        <select name="district" required>
+          <option value="">Select District</option>
+          <option value="Anuradhapura">Anuradhapura</option>
+          <option value="Badulla">Badulla</option>
+          <option value="Batticaloa">Batticaloa</option>
+          <option value="Colombo">Colombo</option>
+          <option value="Gampaha">Gampaha</option>
+          <option value="Kegalle">Kegalle</option>
+          <option value="Polonnaruwa">Polonnaruwa</option>
+          <option value="Ratnapura">Ratnapura</option>
+          <option value="Trincomalee">Trincomalee</option>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label>BRAND</label>
+        <select name="brand" required>
+          <option value="">Select Brand</option>
+          <option value="Samsung">Samsung</option>
+          <option value="Lenovo">Lenovo</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>MODEL NAME</label>
+        <select name="model" required>
+          <option value="">Select Model</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>SERIAL NUMBER</label>
+        <input name="serial_number" type="text" placeholder="e.g. R5CT204ABWM" 
+               pattern="[A-Za-z0-9]{8,15}" minlength="8" maxlength="15"
+               title="Serial Number must be 8-15 characters long. Only letters and numbers allowed. No spaces."
+               oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase()" required/>
+      </div>
+
+      <div class="form-group">
+        <label>ASSET NUMBER (DCS)</label>
+        <input name="asset_no" type="text" placeholder="e.g. 10710" required>
+      </div>
+
+      <div class="form-group">
+        <label>IMEI NUMBER</label>
+        <input name="imei_number" type="text" placeholder="Exactly 15 digits" 
+               pattern="\d{15}" minlength="15" maxlength="15" 
+               title="IMEI must be exactly 15 digits. No letters or spaces allowed."
+               oninput="this.value = this.value.replace(/[^0-9]/g, '')" required/>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div style="font-family: var(--font-head); font-size: 13px; color: var(--muted); letter-spacing: 1px; margin-bottom: 16px; font-weight: bold;">ACCESSORIES CONDITION</div>
+    
+    <div class="form-grid">
+      <div class="form-group"><label>CHARGING ADAPTER</label><select name="charger_status" required><option value="Good">✅ Good</option><option value="Damaged">⚠️ Damaged</option><option value="Missing">❌ Missing</option></select></div>
+      <div class="form-group"><label>DATA CABLE</label><select name="cable_status" required><option value="Good">✅ Good</option><option value="Damaged">⚠️ Damaged</option><option value="Missing">❌ Missing</option></select></div>
+      <div class="form-group"><label>SIM PIN</label><select name="simpin_status" required><option value="Good">✅ Good</option><option value="Missing">❌ Missing</option></select></div>
+      <div class="form-group"><label>DELIVERY NOTE</label><select name="doc_status" required><option value="Good">✅ Present</option><option value="Missing">❌ Missing</option></select></div>
+    </div>
+
+    <div style="display: flex; gap: 12px; justify-content: flex-end; margin-top: 30px;">
+      <button type="reset" class="btn btn-ghost">Clear All</button>
+      <button type="submit" class="btn btn-primary" style="padding: 12px 30px;">Register Device →</button>
+    </div>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const brandSelect = document.querySelector('select[name="brand"]');
+    const modelSelect = document.querySelector('select[name="model"]');
+    const brandModels = { 'Samsung': ['SM-T295'], 'Lenovo': ['TB - 8505X'] };
+    brandSelect.addEventListener('change', function() {
+        modelSelect.innerHTML = '<option value="">Select Model</option>';
+        if (this.value && brandModels[this.value]) {
+            brandModels[this.value].forEach(m => {
+                let opt = document.createElement('option'); opt.value = m; opt.textContent = m; modelSelect.appendChild(opt);
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+    .timeline-container { display: grid; grid-template-columns: 350px 1fr; gap: 24px; align-items: start; margin-top: 20px;}
+    
+    /* Left Side: Device Info Card */
+    .device-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; position: sticky; top: 24px; }
+    .device-header { border-bottom: 1px solid var(--border); padding-bottom: 16px; margin-bottom: 16px; }
+    .device-title { font-family: var(--font-head); font-size: 28px; font-weight: 700; color: var(--cyan); margin: 0; }
+    .info-row { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px dashed rgba(255,255,255,0.05); }
+    .info-label { color: var(--muted); font-size: 13px; }
+    .info-value { font-weight: 600; color: var(--text); font-size: 14px; text-align: right; }
+    
+    /* Right Side: Timeline & Passport */
+    .right-column { display: flex; flex-direction: column; gap: 24px; }
+    .timeline-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 30px; }
+    .timeline-title { font-family: var(--font-head); font-size: 18px; font-weight: 600; margin-bottom: 24px; display: flex; align-items: center; gap: 10px; color: var(--text); border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 15px;}
+    
+    /* Passport Grid Styles */
+    .passport-section-title { color:var(--muted); font-size:12px; margin-bottom:12px; text-transform:uppercase; letter-spacing:1px; font-weight:700;}
+    .hw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 12px; margin-bottom: 24px; }
+    .hw-item { background: rgba(0,0,0,0.2); border: 1px solid var(--border); border-radius: 8px; padding: 12px; text-align: center; }
+    .hw-name { font-size: 11px; color: var(--muted); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px; font-weight:600;}
+    .hw-val { font-size: 14px; font-weight: 700; }
+    
+    .val-pass { color: var(--green); }
+    .val-minor { color: var(--yellow); }
+    .val-fail { color: var(--red); }
+    .val-none { color: var(--muted); }
+
+    /* Timeline Styles */
+    .timeline { position: relative; padding-left: 30px; }
+    .timeline::before { content: ''; position: absolute; left: 7px; top: 0; bottom: 0; width: 2px; background: var(--border); }
+    .timeline-item { position: relative; margin-bottom: 30px; }
+    .timeline-item:last-child { margin-bottom: 0; }
+    
+    .timeline-dot { position: absolute; left: -31px; top: 4px; width: 16px; height: 16px; border-radius: 50%; background: var(--card); border: 3px solid var(--cyan); z-index: 2; }
+    .dot-registered { border-color: var(--cyan); box-shadow: 0 0 10px rgba(0, 212, 255, 0.3); }
+    .dot-locked { border-color: var(--yellow); box-shadow: 0 0 10px rgba(255, 184, 48, 0.3); }
+    .dot-inspected { border-color: var(--green); box-shadow: 0 0 10px rgba(0, 229, 160, 0.3); }
+    .dot-defective { border-color: var(--red); box-shadow: 0 0 10px rgba(255, 75, 75, 0.3); }
+    
+    .timeline-content { background: rgba(0, 0, 0, 0.2); border: 1px solid var(--border); border-radius: 10px; padding: 16px; transition: all 0.3s ease; }
+    .timeline-content:hover { background: rgba(0, 0, 0, 0.4); border-color: rgba(255,255,255,0.1); }
+    .timeline-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px; }
+    .timeline-action { font-weight: 700; font-size: 16px; color: var(--text); }
+    .timeline-time { font-size: 12px; color: var(--muted); background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 6px;}
+    .timeline-user { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; color: var(--cyan); margin-bottom: 12px; font-weight: 600;}
+    .timeline-notes { font-size: 13px; color: #a0aec0; line-height: 1.6; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 6px; border-left: 3px solid var(--border); }
+    
+    .empty-history { text-align: center; padding: 50px 20px; color: var(--muted); font-style: italic; }
+
+    /* 🖨️ THE ULTIMATE CHROME BUG FIX (Forces everything to flow naturally) */
+    @media print {
+        @page { margin: 10mm; }
+
+        /* Strip ALL layout constraints from parent containers */
+        html, body, .main-content, .wrapper, .container-fluid, .content, main { 
+            display: block !important;
+            height: auto !important; 
+            min-height: 0 !important;
+            overflow: visible !important; 
+            position: static !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            background: #fff !important; 
+        }
+        
+        /* Hide sidebars and buttons */
+        .sidebar, .navbar, .action-buttons, .btn, header, aside, nav, .topbar { 
+            display: none !important; 
+        }
+
+        .header-flex { display: block !important; margin: 0 0 20px 0 !important; padding: 0 !important; }
+        
+        /* DESTROY GRID AND FLEXBOX ON MAIN CONTAINERS */
+        .timeline-container, .right-column { 
+            display: block !important; 
+            width: 100% !important;
+            margin: 0 !important; 
+            padding: 0 !important;
+        }
+        
+        /* ALLOW EVERYTHING TO BREAK FREELY */
+        .device-card, .timeline-card { 
+            display: block !important;
+            position: static !important; /* THIS FIXES THE BLANK PAGE BUG */
+            width: 100% !important;
+            background: #fff !important; 
+            border: 1px solid #ccc !important; 
+            box-shadow: none !important; 
+            margin: 0 0 20px 0 !important; 
+            padding: 15px !important;
+            page-break-inside: auto !important; /* ALLOW BREAKS */
+            break-inside: auto !important;
+        }
+
+        /* Force Grid to wrap safely on A4 */
+        .hw-grid { 
+            display: flex !important; 
+            flex-wrap: wrap !important; 
+            gap: 10px !important; 
+        }
+        .hw-item { 
+            flex: 0 0 calc(25% - 10px) !important; 
+            border: 1px solid #ddd !important; 
+            page-break-inside: avoid !important; 
+        }
+
+        .timeline-item { page-break-inside: avoid !important; }
+        
+        /* Print Colors */
+        .device-title, .info-value, .hw-val, .timeline-action, .timeline-title { color: #000 !important; }
+        .info-label, .hw-name, .passport-section-title { color: #555 !important; }
+        .timeline-content { background: #fff !important; border-color: #ccc !important; }
+        .timeline-notes { background: #f0f0f0 !important; border-left-color: #aaa !important; color: #333 !important;}
+        .info-row { border-bottom-color: #eee !important; }
+        .timeline::before { background: #ccc !important; }
+        
+        .badge { border: 1px solid #000 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+        .val-pass { color: #15803d !important; }
+        .val-minor { color: #b45309 !important; }
+        .val-fail { color: #b91c1c !important; }
+    }
+</style>
+
+<div class="header-flex" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px;">
+    <h2 style="color:var(--text); margin:0;">📱 Device Profile & History</h2>
+    
+    <div class="action-buttons" style="display:flex; gap:10px; flex-wrap: wrap;">
+        
+        <button onclick="window.print()" class="btn" style="background:rgba(0, 212, 255, 0.1); border:1px solid var(--cyan); color:var(--cyan);">📄 Print / Save PDF</button>
+
+        {% if tablet.status not in ['Pending', 'Locked'] and (current_user.role == 'Admin' or current_user.name == tablet.inspected_by) %}
+            <form action="{{ url_for('undo_inspection', id=tablet.id) }}" method="POST" style="margin:0;">
+                <button type="submit" class="btn" style="background:rgba(255, 184, 48, 0.15); border:1px solid var(--yellow); color:var(--yellow);" onclick="return confirm('Are you sure you want to undo this inspection? This will send the device back to the Inspection Queue.');">
+                    ↩️ Undo Inspection
+                </button>
+            </form>
+        {% endif %}
+        
+        {% if current_user.role == 'Admin' %}
+            <a href="{{ url_for('edit_tablet', id=tablet.id) }}" class="btn" style="background:rgba(0, 229, 160, 0.15); border:1px solid var(--green); color:var(--green);">✏️ Edit Info</a>
+            
+            <form action="{{ url_for('delete_tablet', id=tablet.id) }}" method="POST" onsubmit="return confirm('⚠️ DANGER: Are you sure you want to completely delete T-{{ tablet.id }}? This action cannot be undone.');" style="margin:0;">
+                <button type="submit" class="btn" style="background:rgba(255, 75, 75, 0.15); border:1px solid var(--red); color:var(--red);">🗑️ Delete Device</button>
+            </form>
+        {% endif %}
+        
+        <a href="javascript:history.back()" class="btn" style="background:rgba(255, 255, 255, 0.05); border:1px solid var(--border); color:var(--text);">← Back</a>
+    </div>
+</div>
+<div class="timeline-container">
+    
+    <div class="device-card">
+        <div class="device-header">
+            <h3 class="device-title">T-{{ tablet.id }}</h3>
+            <div style="margin-top: 10px;">
+                {% if tablet.status == 'Passed' %}<span class="badge badge-good">✅ Passed</span>
+                {% elif tablet.status == 'Defective' %}<span class="badge badge-defective">❌ Defective</span>
+                {% elif tablet.status == 'Minor Issues' %}<span class="badge badge-pending">⚠️ Minor</span>
+                {% elif tablet.status == 'Locked' %}<span class="badge badge-locked">🔒 Locked</span>
+                {% else %}<span class="badge badge-pending">⏳ Pending</span>{% endif %}
+            </div>
+        </div>
+        
+        <div class="info-row"><span class="info-label">Asset Number</span><span class="info-value" style="color:var(--yellow)">{{ tablet.asset_no or 'N/A' }}</span></div>
+        <div class="info-row"><span class="info-label">Serial Number</span><span class="info-value" style="font-family:monospace; color:var(--cyan)">{{ tablet.serial_number }}</span></div>
+        <div class="info-row"><span class="info-label">IMEI Number</span><span class="info-value" style="font-family:monospace">{{ tablet.imei_number or 'N/A' }}</span></div>
+        <div class="info-row"><span class="info-label">Brand & Model</span><span class="info-value">{{ tablet.brand }} {{ tablet.model }}</span></div>
+        <div class="info-row"><span class="info-label">District</span><span class="info-value">{{ tablet.district }}</span></div>
+        <div class="info-row"><span class="info-label">Registered By</span><span class="info-value">{{ tablet.registered_by }}</span></div>
+        <div class="info-row" style="border:none;"><span class="info-label">Current Tech</span><span class="info-value">{% if tablet.inspected_by %}{{ tablet.inspected_by }}{% else %}<span style="color:var(--muted)">None</span>{% endif %}</span></div>
+        <div class="info-row" style="border:none; background:rgba(0,212,255,0.05); padding:12px; border-radius:8px; margin-top:10px;"><span class="info-label" style="color:var(--cyan); font-weight:bold;">⚡ 20% Battery Drain Time</span><span class="info-value" style="color:var(--yellow); font-size:16px;">{{ tablet.battery_drain_time or 'N/A' }}</span></div>
+
+    </div>
+
+    <div class="right-column">
+
+        {% if tablet.status != 'Pending' and tablet.status != 'Locked' %}
+        <div class="timeline-card">
+            <div class="timeline-title">📋 Full Inspection Record</div>
+            
+            <div class="passport-section-title">Hardware Status</div>
+            <div class="hw-grid">
+                {% set hw_items = [
+                    ('Display', 'display'), ('Touch', 'touch'), ('Battery', 'battery'),
+                    ('Cameras', 'cameras'), ('WiFi', 'wifi'), ('Bluetooth', 'bt'),
+                    ('GPS', 'gps'), ('Speaker', 'speaker'), ('Mic', 'mic'),
+                    ('Charging Port', 'charging'), ('Buttons', 'p_btn'), ('SIM Tray', 'sim')
+                ] %}
+                
+                {% for name, key in hw_items %}
+                    {% set val = tablet.details.get(key, 'N/A') %}
+                    <div class="hw-item">
+                        <div class="hw-name">{{ name }}</div>
+                        <div class="hw-val {% if val|lower == 'pass' %}val-pass{% elif val|lower in ['minor', 'partial'] %}val-minor{% elif val|lower == 'fail' %}val-fail{% else %}val-none{% endif %}">
+                            {{ val|title }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class="passport-section-title">Accessories Status</div>
+            <div class="hw-grid">
+                {% set acc_items = [
+                    ('Charger', tablet.charger_status), ('USB Cable', tablet.cable_status), 
+                    ('SIM Pin', tablet.simpin_status),  ('Delivery Doc', tablet.doc_status)
+                ] %}
+                
+                {% for name, val in acc_items %}
+                    {% set clean_val = val or 'N/A' %}
+                    <div class="hw-item">
+                        <div class="hw-name">{{ name }}</div>
+                        <div class="hw-val {% if clean_val|lower in ['good', 'present'] %}val-pass{% elif clean_val|lower == 'damaged' %}val-minor{% elif clean_val|lower == 'missing' %}val-fail{% else %}val-none{% endif %}">
+                            {{ clean_val }}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+            {% if tablet.details.get('inspector_notes') %}
+            <div class="passport-section-title" style="margin-top: 24px;">Inspector Notes</div>
+            <div class="timeline-notes">
+                {{ tablet.details.get('inspector_notes') }}
+            </div>
+            {% endif %}
+            
+        </div>
+        {% endif %}
+
+        <div class="timeline-card">
+            <div class="timeline-title">🕒 Activity Log History</div>
+            
+            {% if history %}
+            <div class="timeline">
+                {% for log in history %}
+                    {% set dot_class = 'dot-registered' %}
+                    {% if log.status_changed_to == 'Passed' %}{% set dot_class = 'dot-inspected' %}
+                    {% elif log.status_changed_to == 'Defective' %}{% set dot_class = 'dot-defective' %}
+                    {% elif log.status_changed_to == 'Minor Issues' %}{% set dot_class = 'dot-locked' %}
+                    {% elif 'Locked' in log.action %}{% set dot_class = 'dot-locked' %}
+                    {% endif %}
+
+                <div class="timeline-item">
+                    <div class="timeline-dot {{ dot_class }}"></div>
+                    <div class="timeline-content">
+                        <div class="timeline-header">
+                            <div class="timeline-action">{{ log.action }}</div>
+                            <div class="timeline-time">🕒 {{ log.timestamp }}</div>
+                        </div>
+                        <div class="timeline-user">👤 {{ log.performed_by }}</div>
+                        {% if log.notes %}
+                        <div class="timeline-notes">
+                            <strong>Status Changed To:</strong> <span>{{ log.status_changed_to }}</span><br>
+                            {{ log.notes }}
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-history">
+                <div style="font-size:48px; margin-bottom:15px; opacity:0.5">📭</div>
+                <div style="font-size:16px; color:var(--text); margin-bottom:5px;">No Timeline History Available</div>
+                <div style="font-size:13px;">History tracking was enabled after this device was processed. New devices will show full history here.</div>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,89 @@
+body {
+    background-color: #0b1120; /* තද නිල්/කළු පසුබිම */
+    color: #ffffff;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    display: flex;
+    height: 100vh;
+    overflow: hidden;
+}
+
+/* වම් පැත්තේ මෙනුව */
+.sidebar {
+    background-color: #111827;
+    width: 260px;
+    padding: 20px;
+    box-sizing: border-box;
+    border-right: 1px solid #1f2937;
+    overflow-y: auto;
+}
+
+.sidebar h2 {
+    color: #38bdf8;
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 24px;
+    letter-spacing: 2px;
+}
+
+.menu-category {
+    color: #6b7280;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1.5px;
+    margin-top: 25px;
+    margin-bottom: 10px;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    color: #9ca3af;
+    text-decoration: none;
+    padding: 12px 15px;
+    margin-bottom: 5px;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    font-size: 15px;
+}
+
+.nav-link:hover, .nav-link.active {
+    background-color: #1f2937;
+    color: #38bdf8; /* ලස්සන ලා නිල් පාට */
+}
+
+.nav-link i {
+    margin-right: 15px;
+    font-size: 18px;
+    width: 20px;
+    text-align: center;
+}
+
+/* රතු පාට රවුම් (Badges) */
+.badge-red {
+    background-color: #ef4444;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 8px;
+    font-size: 12px;
+    margin-left: auto;
+    font-weight: bold;
+}
+
+.badge-cyan {
+    background-color: #06b6d4;
+    color: white;
+    border-radius: 50%;
+    padding: 2px 8px;
+    font-size: 12px;
+    margin-left: auto;
+    font-weight: bold;
+}
+
+/* ප්‍රධාන තිරය */
+.main-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+}

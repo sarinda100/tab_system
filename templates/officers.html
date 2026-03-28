@@ -1,0 +1,121 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="section-card" style="margin-bottom: 20px;">
+    <div style="font-family: var(--font-head); font-size: 16px; font-weight: 700; color: var(--cyan); margin-bottom: 15px;">➕ Add New Officer</div>
+    <form method="POST" style="display: grid; grid-template-columns: 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end;">
+        <div>
+            <label style="font-size:11px;color:var(--muted);font-weight:bold;margin-bottom:5px;display:block;">NAME</label>
+            <input type="text" name="name" placeholder="e.g. Nimal Senanayake" required style="width:100%;padding:10px;background:var(--surface);border:1px solid var(--border);color:white;border-radius:6px;outline:none;">
+        </div>
+        <div>
+            <label style="font-size:11px;color:var(--muted);font-weight:bold;margin-bottom:5px;display:block;">USERNAME</label>
+            <input type="text" name="username" placeholder="e.g. nimal" required style="width:100%;padding:10px;background:var(--surface);border:1px solid var(--border);color:white;border-radius:6px;outline:none;">
+        </div>
+        <div>
+            <label style="font-size:11px;color:var(--muted);font-weight:bold;margin-bottom:5px;display:block;">PASSWORD</label>
+            <input type="password" name="password" placeholder="••••••••" required style="width:100%;padding:10px;background:var(--surface);border:1px solid var(--border);color:white;border-radius:6px;outline:none;">
+        </div>
+        <div>
+            <label style="font-size:11px;color:var(--muted);font-weight:bold;margin-bottom:5px;display:block;">ROLE</label>
+            <select name="role" required style="width:100%;padding:10px;background:var(--surface);border:1px solid var(--border);color:white;border-radius:6px;outline:none;">
+                <option value="Technician">Technician</option>
+                <option value="Admin">Admin</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary" style="padding: 11px 20px;">Add Officer</button>
+    </form>
+</div>
+
+<div style="font-family: var(--font-head); font-size: 18px; font-weight: 700; margin-bottom: 15px;">👥 System Officers</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div style="background: {% if category == 'success' %}rgba(0,229,160,0.1){% else %}rgba(255,64,96,0.1){% endif %}; border: 1px solid {% if category == 'success' %}var(--green){% else %}var(--red){% endif %}; color: {% if category == 'success' %}var(--green){% else %}var(--red){% endif %}; padding: 10px; border-radius: 8px; margin-bottom: 15px; font-size: 13px; font-weight: bold;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div style="display:grid;grid-template-columns:repeat(auto-fill, minmax(250px, 1fr));gap:16px;">
+    {% for user in users %}
+    <div class="section-card" style="text-align:center; padding: 30px 20px; margin-bottom: 0;">
+        {% if user.role == 'Admin' %}
+            <div style="width:60px;height:60px;border-radius:50%;background:var(--cyan);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#000;margin:0 auto 12px;font-family:var(--font-head);text-transform:uppercase;">{{ user.name[0] }}</div>
+        {% else %}
+            <div style="width:60px;height:60px;border-radius:50%;background:var(--purple);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff;margin:0 auto 12px;font-family:var(--font-head);text-transform:uppercase;">{{ user.name[0] }}</div>
+        {% endif %}
+        
+        <div style="font-weight:600;margin-bottom:4px;font-size:15px;">{{ user.name }}</div>
+        <div style="font-size:12px;color:var(--muted);margin-bottom:12px">@{{ user.username }}</div>
+        
+        {% if user.role == 'Admin' %}
+            <span class="badge badge-locked" style="padding: 5px 12px; background: rgba(0, 212, 255, 0.15); color: var(--cyan);">Admin</span>
+        {% else %}
+            <span class="badge badge-locked" style="padding: 5px 12px;">Technician</span>
+        {% endif %}
+
+        {% if user.id != current_user.id %}
+        <div style="display: flex; gap: 8px; justify-content: center; margin-top: 15px;">
+            <button type="button" onclick="openResetModal('{{ user.id }}', '{{ user.name }}')" class="btn btn-ghost" style="color: var(--yellow); border-color: rgba(255,184,48,0.3); padding: 5px 15px; font-size: 11px;">🔑 Reset Pass</button>
+
+            <form action="{{ url_for('delete_officer', id=user.id) }}" method="POST" onsubmit="return confirm('Are you sure you want to remove {{ user.name }}?');" style="margin: 0;">
+                <button type="submit" class="btn btn-ghost" style="color: var(--red); border-color: rgba(255,64,96,0.3); padding: 5px 15px; font-size: 11px;">🗑️ Delete</button>
+            </form>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+</div>
+
+<style>
+    .modal-overlay {
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(4px);
+        display: none; justify-content: center; align-items: center; z-index: 2000;
+        opacity: 0; transition: opacity 0.3s ease;
+    }
+    .modal-overlay.active { display: flex; opacity: 1; }
+    .modal-box {
+        background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+        width: 350px; padding: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.5);
+        transform: scale(0.9); transition: transform 0.3s ease;
+    }
+    .modal-overlay.active .modal-box { transform: scale(1); }
+</style>
+
+<div id="resetModal" class="modal-overlay">
+    <div class="modal-box">
+        <div style="font-size: 16px; font-weight: bold; color: var(--yellow); margin-bottom: 15px; font-family: var(--font-head);">🔑 Reset Password</div>
+        <div style="font-size: 13px; color: var(--muted); margin-bottom: 15px;">Enter a new password for <strong id="resetUserName" style="color:var(--text);"></strong>.</div>
+        
+        <form id="resetForm" method="POST" action="">
+            <input type="password" name="new_password" placeholder="New Password" required style="width: 100%; padding: 10px; background: var(--bg); border: 1px solid var(--border); color: white; border-radius: 8px; outline: none; margin-bottom: 20px;">
+            
+            <div style="display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" onclick="closeResetModal()" class="btn btn-ghost" style="padding: 8px 15px;">Cancel</button>
+                <button type="submit" class="btn" style="background: var(--yellow); color: #000; font-weight: bold; padding: 8px 15px;">Update</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openResetModal(userId, userName) {
+        document.getElementById('resetUserName').innerText = userName;
+        document.getElementById('resetForm').action = '/reset_password/' + userId;
+        
+        const modal = document.getElementById('resetModal');
+        modal.style.display = 'flex';
+        setTimeout(() => { modal.classList.add('active'); }, 10);
+    }
+
+    function closeResetModal() {
+        const modal = document.getElementById('resetModal');
+        modal.classList.remove('active');
+        setTimeout(() => { modal.style.display = 'none'; }, 300);
+    }
+</script>
+{% endblock %}

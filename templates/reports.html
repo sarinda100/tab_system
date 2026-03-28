@@ -1,0 +1,216 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.section-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 24px; margin-bottom: 20px; }
+.section-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 15px; }
+.section-title { font-family: var(--font-head); font-size: 17px; font-weight: 600; }
+label { font-size: 11px; color: var(--muted); letter-spacing: 1.5px; display: block; margin-bottom: 7px; font-family: var(--font-head); }
+select, input { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px; outline: none; }
+
+.timeline-link { color: var(--cyan); font-weight: 700; text-decoration: none; border-bottom: 1px dashed var(--cyan); padding-bottom: 2px; transition: all 0.3s ease; }
+.timeline-link:hover { color: #fff; border-bottom-color: #fff; text-shadow: 0 0 8px var(--cyan); }
+
+/* Modal Styles */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.6); backdrop-filter: blur(6px); display: none; justify-content: center; align-items: center; z-index: 2000; opacity: 0; transition: opacity 0.3s ease; }
+.modal-overlay.active { display: flex; opacity: 1; }
+.modal-box { background: var(--card); border: 1px solid rgba(255, 64, 96, 0.4); border-radius: 16px; width: 420px; padding: 30px; box-shadow: 0 15px 40px rgba(255, 64, 96, 0.15); text-align: center; transform: scale(0.9); transition: transform 0.3s ease; }
+.modal-overlay.active .modal-box { transform: scale(1); }
+.modal-icon { font-size: 40px; margin-bottom: 15px; color: var(--red); font-weight: bold;}
+.modal-title { color: var(--red); font-family: var(--font-head); font-size: 18px; font-weight: 800; margin-bottom: 15px; text-transform: uppercase; }
+.modal-text { color: var(--text); font-size: 14px; margin-bottom: 25px; line-height: 1.6; }
+.modal-actions { display: flex; gap: 15px; justify-content: center; }
+.btn-cancel { background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+.btn-confirm-del { background: rgba(255, 64, 96, 0.1); color: var(--red); border: 1px solid var(--red); padding: 10px 20px; border-radius: 8px; cursor: pointer; }
+
+.button-container { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* 🔴 Premium Dropdown Styles 🔴 */
+.dropdown { position: relative; display: inline-block; }
+.dropbtn { background-color: var(--cyan); color: #080f1c; padding: 10px 20px; font-size: 14px; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; transition: 0.3s; height: 100%; display: flex; align-items: center; gap: 8px; }
+.dropbtn:hover { background-color: #00b3cc; }
+.dropdown-content { display: none; position: absolute; right: 0; top: 110%; background-color: var(--surface); min-width: 260px; box-shadow: 0px 8px 20px 0px rgba(0,0,0,0.6); z-index: 100; border: 1px solid var(--cyan); border-radius: 8px; overflow: hidden; }
+.dropdown-content button { width: 100%; text-align: left; background: none; color: #ddeeff; padding: 14px 16px; border: none; border-bottom: 1px solid var(--border); display: block; font-size: 13px; transition: 0.2s; cursor: pointer; font-family: var(--font-head); }
+.dropdown-content button:last-child { border-bottom: none; }
+.dropdown-content button:hover { background-color: #1a3050; color: var(--cyan); padding-left: 22px; } /* Hover කරද්දී පොඩ්ඩක් ඉස්සරහට එන පට්ට Effect එකක් */
+.dropdown:hover .dropdown-content { display: block; }
+</style>
+
+<div class="section-card">
+  <form method="GET" action="/reports">
+      <div class="section-header">
+        <div class="section-title">Filter Division Report</div>
+        
+        <div class="button-container">
+            <button type="submit" class="btn btn-primary" style="padding: 10px 20px; border-radius: 8px; font-weight: bold;">Generate Report</button>
+            
+           <div class="dropdown">
+            <button type="button" class="dropbtn">📥 Export Reports ▼</button>
+            <div class="dropdown-content">
+                <button type="submit" formaction="/export_filtered">🎯 Export Filtered Data (CSV)</button>
+                <button type="submit" formaction="/export_sinhala_word">📝 Quality Inspection (Word)</button>
+                <button type="submit" formaction="/generate_handover_pdf">📦 Stores Handover Report (PDF)</button>
+                <button type="submit" formaction="/generate_full_inspection_pdf">🔍 Full Inspection & Analytics (PDF)</button>
+                <button type="submit" formaction="/generate_defect_report_pdf">⚠️ Defect & Shortage Report (PDF)</button>
+            </div>
+        </div>
+        </div>
+      </div>
+
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(150px, 1fr)); gap:14px">
+        <div>
+            <label>DISTRICT</label>
+            <select name="district">
+                <option value="All Districts">All Districts</option>
+                {% for d in ['Colombo', 'Gampaha', 'Batticaloa', 'Trincomalee', 'Anuradhapura', 'Polonnaruwa', 'Badulla', 'Ratnapura', 'Kegalle'] %}
+                <option value="{{ d }}" {% if req.get('district') == d %}selected{% endif %}>{{ d }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div>
+            <label>BRAND</label>
+            <select name="brand">
+                <option value="All Brands">All Brands</option>
+                <option value="Samsung" {% if req.get('brand') == 'Samsung' %}selected{% endif %}>Samsung</option>
+                <option value="Lenovo" {% if req.get('brand') == 'Lenovo' %}selected{% endif %}>Lenovo</option>
+            </select>
+        </div>
+        <div>
+            <label>DEVICE STATUS</label>
+            <select name="status">
+                <option value="All Statuses">All Statuses</option>
+                <option value="Passed" {% if req.get('status') == 'Passed' %}selected{% endif %}>Passed</option>
+                <option value="Defective" {% if req.get('status') == 'Defective' %}selected{% endif %}>Defective</option>
+            </select>
+        </div>
+        <div>
+            <label>INSPECTED BY</label>
+            <select name="inspector">
+                <option value="All Inspectors">All Staff</option>
+                {% for u in users %}
+                <option value="{{ u.name }}" {% if req.get('inspector') == u.name %}selected{% endif %}>{{ u.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+      </div>
+  </form>
+</div>
+
+<div class="table-wrap" style="min-height: 65vh; border: 1px solid var(--border); border-radius: 16px; margin-top: 20px; overflow: hidden; background: var(--card); position: relative; padding-bottom: 70px;">
+  <table class="data-table" style="width: 100%; border-collapse: collapse;">
+    <thead>
+      <tr style="background: var(--surface);">
+        <th>DEVICE INFO</th><th>BRAND</th><th>DISTRICT</th><th>BATTERY</th><th>SCREEN</th><th>OVERALL STATUS</th>
+        {% if current_user.role == 'Admin' %}<th>ADMIN ACTION</th>{% endif %}
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tablets %}
+      <tr>
+        <td>
+            <div style="font-size:15px; font-weight:700; margin-bottom:2px;">
+                <a href="{{ url_for('tablet_timeline', id=t.id) }}" class="timeline-link">T-{{ t.id }}</a>
+            </div>
+            <div style="font-size:12px; color:var(--yellow); font-weight:bold;">Asset: {{ t.asset_no or '-' }}</div>
+            <div style="font-size:11px; color:var(--muted);">SN: {{ t.serial_number }}</div>
+        </td>
+        <td>{{ t.brand }}</td>
+        <td>{{ t.district }}</td>
+        <td>
+            {% set bat = (t.details.get('battery') or '') | string | lower %}
+            {% if bat == 'pass' %}<span class="badge badge-good">Pass</span>
+            {% elif bat == 'fail' %}<span class="badge badge-defective">Fail</span>
+            {% elif bat == 'minor' or bat == 'partial' %}<span class="badge badge-pending">Minor</span>
+            {% else %}<span style="color:var(--muted)">N/A</span>{% endif %}
+        </td>
+        <td>
+            {% set scr = (t.details.get('display') or '') | string | lower %}
+            {% if scr == 'pass' %}<span class="badge badge-good">Pass</span>
+            {% elif scr == 'fail' %}<span class="badge badge-defective">Fail</span>
+            {% elif scr == 'minor' or scr == 'partial' %}<span class="badge badge-pending">Minor</span>
+            {% else %}<span style="color:var(--muted)">N/A</span>{% endif %}
+        </td>
+        <td>
+            {% if t.status == 'Passed' %}<span class="badge badge-good">Passed</span>
+            {% elif t.status == 'Defective' %}<span class="badge badge-defective">Defective</span>
+            {% else %}<span class="badge badge-pending">{{ t.status }}</span>{% endif %}
+        </td>
+        
+        {% if current_user.role == 'Admin' %}
+        <td>
+            <div style="display:flex; gap:8px;">
+                <a href="{{ url_for('edit_tablet', id=t.id) }}" class="btn" style="padding:4px 8px; font-size:12px; background:rgba(255, 184, 48, 0.1); border:1px solid var(--yellow); color:var(--yellow); text-decoration:none; border-radius:4px;">Edit</a>
+                <form id="delete-form-{{ t.id }}" action="{{ url_for('delete_tablet', id=t.id) }}" method="POST" style="margin:0;">
+                    <button type="button" onclick="openDeleteModal('{{ t.id }}')" class="btn" style="padding:4px 8px; font-size:12px; background:rgba(255, 75, 75, 0.1); border:1px solid var(--red); color:var(--red); border-radius:4px; cursor:pointer;">Delete</button>
+                </form>
+            </div>
+        </td>
+        {% endif %}
+      </tr>
+      {% endfor %}
+      
+      {% if not tablets %}
+      <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:40px">No records match your filter.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+
+  {% if total_pages > 1 %}
+  <div style="position: absolute; bottom: 0; left: 0; width: 100%; display: flex; justify-content: space-between; align-items: center; background: var(--surface); border-top: 1px solid var(--border); padding: 12px 24px; z-index: 10;">
+      <div style="color: var(--muted); font-size: 13px; font-family: var(--font-head);">
+          Page <strong style="color: var(--text);">{{ page }}</strong> of {{ total_pages }} 
+          <span style="margin: 0 10px; opacity: 0.2;">|</span> 
+          Total: <strong style="color: var(--cyan);">{{ total_records }}</strong>
+      </div>
+      <div style="display: flex; gap: 10px;">
+          {% if page > 1 %}
+              <a href="{{ url_for('reports', page=page-1, district=req.get('district',''), brand=req.get('brand',''), status=req.get('status',''), inspector=req.get('inspector','')) }}" class="btn" style="background: var(--card); border: 1px solid var(--border); color: var(--text); padding: 7px 18px; font-size: 13px; text-decoration: none; border-radius: 8px;">&laquo; Previous</a>
+          {% else %}
+              <button disabled class="btn" style="background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 7px 18px; font-size: 13px; border-radius: 8px; opacity: 0.4;">&laquo; Previous</button>
+          {% endif %}
+
+          {% if page < total_pages %}
+              <a href="{{ url_for('reports', page=page+1, district=req.get('district',''), brand=req.get('brand',''), status=req.get('status',''), inspector=req.get('inspector','')) }}" class="btn" style="background: var(--cyan); border: none; color: #000; padding: 7px 22px; font-size: 13px; text-decoration: none; border-radius: 8px; font-weight: 700;">Next &raquo;</a>
+          {% else %}
+              <button disabled class="btn" style="background: transparent; border: 1px solid var(--border); color: var(--muted); padding: 7px 22px; font-size: 13px; border-radius: 8px; opacity: 0.4;">Next &raquo;</button>
+          {% endif %}
+      </div>
+  </div>
+  {% endif %}
+</div>
+
+<div id="customDeleteModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-icon">!</div>
+        <div class="modal-title">System Alert: Permanent Deletion</div>
+        <div class="modal-text">
+            You are about to permanently delete device record <strong id="modalTabId" style="color:var(--cyan); font-size:16px;"></strong>.<br><br>
+            This will erase all inspection data and hardware logs. Do you wish to proceed?
+        </div>
+        <div class="modal-actions">
+            <button type="button" class="btn-cancel" onclick="closeDeleteModal()">Cancel</button>
+            <button type="button" class="btn-confirm-del" onclick="confirmDeletion()">Yes, Delete Record</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    let currentFormToSubmit = null;
+    function openDeleteModal(tabId) {
+        document.getElementById('modalTabId').innerText = 'T-' + tabId;
+        currentFormToSubmit = document.getElementById('delete-form-' + tabId);
+        const modal = document.getElementById('customDeleteModal');
+        modal.style.display = 'flex';
+        setTimeout(() => { modal.classList.add('active'); }, 10);
+    }
+    function closeDeleteModal() {
+        const modal = document.getElementById('customDeleteModal');
+        modal.classList.remove('active');
+        setTimeout(() => { modal.style.display = 'none'; currentFormToSubmit = null; }, 300);
+    }
+    function confirmDeletion() {
+        if (currentFormToSubmit) {
+            currentFormToSubmit.submit();
+        }
+    }
+</script>
+{% endblock %}

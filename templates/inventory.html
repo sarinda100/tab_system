@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; border-top: 3px solid var(--accent-color); }
+.metric-value { font-family: var(--font-head); font-size: 36px; font-weight: 700; color: var(--accent-color); line-height: 1; }
+.metric-label { font-size: 14px; color: var(--muted); margin-top: 4px; font-weight: bold;}
+.update-box { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; margin-bottom: 24px; }
+.form-row { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr 1fr auto; gap: 10px; align-items: end; }
+.form-group label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 5px; font-weight: bold; }
+.form-input { width: 100%; padding: 10px; background: var(--surface); border: 1px solid var(--border); color: var(--text); border-radius: 8px; }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <div style="font-family:var(--font-head); font-size:22px; font-weight:700; color:var(--text);">District-wise Inventory</div>
+    
+    <form action="{{ url_for('export_inventory_pdf') }}" method="POST" style="display: flex; gap: 10px; align-items: center;">
+        <select name="district" class="form-input" style="width: 200px; padding: 8px;" required>
+            <option value="" disabled selected>-- Select a District --</option>
+            <option value="Anuradhapura">Anuradhapura</option>
+            <option value="Badulla">Badulla</option>
+            <option value="Batticaloa">Batticaloa</option>
+            <option value="Colombo">Colombo</option>
+            <option value="Gampaha">Gampaha</option>
+            <option value="Kegalle">Kegalle</option>
+            <option value="Polonnaruwa">Polonnaruwa</option>
+            <option value="Ratnapura">Ratnapura</option>
+            <option value="Trincomalee">Trincomalee</option>
+        </select>
+        <button type="submit" class="btn" style="background: var(--surface); border: 1px solid var(--cyan); color: var(--cyan); font-weight: bold; padding: 8px 15px;">Download PDF</button>
+    </form>
+</div>
+
+<div class="metrics-grid">
+    {% for item in totals %}
+        {% if item.item_name == 'Stylus Pen' %}
+            <div class="metric-card" style="--accent-color: var(--cyan)"><div class="metric-value">{{ item.total_good }}</div><div class="metric-label">Island-wide Pens</div></div>
+        {% elif item.item_name == 'Rugged Pouch' %}
+            <div class="metric-card" style="--accent-color: var(--green)"><div class="metric-value">{{ item.total_good }}</div><div class="metric-label">Island-wide Pouches</div></div>
+        {% elif item.item_name == 'Delivery Bag' %}
+            <div class="metric-card" style="--accent-color: var(--yellow)"><div class="metric-value">{{ item.total_good }}</div><div class="metric-label">Island-wide Bags</div></div>
+        {% endif %}
+    {% endfor %}
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    <div id="flash-message-box" style="margin-bottom: 20px;">
+      {% for category, message in messages %}
+        <div style="padding: 15px; border-radius: 8px; font-weight: bold; margin-bottom: 10px;
+          {% if category == 'danger' or category == 'error' %} 
+             background-color: #ffebee; color: #c62828; border: 1px solid #ef9a9a; 
+          {% else %} 
+             background-color: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; 
+          {% endif %}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    </div>
+    
+    <script>
+        setTimeout(function() {
+            let flashBox = document.getElementById('flash-message-box');
+            if (flashBox) {
+                flashBox.style.transition = "opacity 0.5s ease";
+                flashBox.style.opacity = "0"; // මුලින්ම බොඳ වෙලා යනවා
+                setTimeout(() => flashBox.style.display = "none", 500); // ඊට පස්සේ අතුරුදහන් වෙනවා
+            }
+        }, 4000); // 4000 කියන්නේ තත්පර 4යි
+    </script>
+  {% endif %}
+{% endwith %}
+
+<div class="update-box">
+    <div style="color:var(--cyan); font-weight:bold; margin-bottom:15px;">Update District Stock Levels</div>
+    
+    <form method="POST" action="{{ url_for('update_inventory') }}" class="form-row" onsubmit="saveSelection()">
+        <div class="form-group">
+            <label>Select District</label>
+            <select name="district" id="districtSelect" class="form-input" required>
+                <option value="" disabled selected>-- Select a District --</option>
+                <option value="Anuradhapura">Anuradhapura</option>
+                <option value="Badulla">Badulla</option>
+                <option value="Batticaloa">Batticaloa</option>
+                <option value="Colombo">Colombo</option>
+                <option value="Gampaha">Gampaha</option>
+                <option value="Kegalle">Kegalle</option>
+                <option value="Polonnaruwa">Polonnaruwa</option>
+                <option value="Ratnapura">Ratnapura</option>
+                <option value="Trincomalee">Trincomalee</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Select Item</label>
+            <select name="item_name" id="itemSelect" class="form-input" required>
+                <option value="" disabled selected>-- Select an Item --</option>
+                <option value="Stylus Pen">Stylus Pen</option>
+                <option value="Rugged Pouch">Rugged Pouch</option>
+                <option value="Delivery Bag">Delivery Bag</option>
+            </select>
+        </div>
+        <div class="form-group"><label>Good Qty</label><input type="number" name="good_qty" class="form-input" required></div>
+        <div class="form-group"><label>Defective Qty</label><input type="number" name="defective_qty" class="form-input" value="0" required></div>
+        <div class="form-group"><label>Remarks</label><input type="text" name="remark" class="form-input" placeholder="E.g., 2 broken"></div>
+        <div class="form-group"><button type="submit" class="btn" style="background: var(--cyan); color: #000; font-weight: bold; padding: 10px 20px;">Update</button></div>
+    </form>
+</div>
+
+<div class="table-wrap">
+    <table class="data-table">
+        <thead><tr><th>DISTRICT</th><th>ITEM NAME</th><th>GOOD (WORKING)</th><th>DEFECTIVE</th><th>TOTAL QTY</th><th>REMARKS</th></tr></thead>
+        <tbody>
+            {% for item in inventory_data %}
+            <tr>
+                <td style="font-weight: bold; color: var(--cyan);">{{ item.district }}</td>
+                <td style="font-weight: bold;">{{ item.item_name }}</td>
+                <td><span class="badge badge-good">{{ item.good_qty }}</span></td>
+                <td><span class="badge badge-defective">{{ item.defective_qty }}</span></td>
+                <td style="font-weight: bold;">{{ item.good_qty + item.defective_qty }}</td>
+                <td style="color: var(--yellow);">{{ item.remark or '-' }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<script>
+    // පේජ් එක ලෝඩ් වෙද්දී අන්තිමට තෝරපු එක දානවා
+    document.addEventListener("DOMContentLoaded", function() {
+        let savedDistrict = localStorage.getItem("lastDistrict");
+        let savedItem = localStorage.getItem("lastItem");
+        
+        if(savedDistrict) {
+            document.getElementById("districtSelect").value = savedDistrict;
+        }
+        if(savedItem) {
+            document.getElementById("itemSelect").value = savedItem;
+        }
+    });
+
+    // Update බට්න් එක ඔබද්දී තෝරපු එක සේව් කරනවා
+    function saveSelection() {
+        localStorage.setItem("lastDistrict", document.getElementById("districtSelect").value);
+        localStorage.setItem("lastItem", document.getElementById("itemSelect").value);
+    }
+</script>
+{% endblock %}

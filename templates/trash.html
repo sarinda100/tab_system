@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+/* Trash Table Custom CSS */
+.trash-wrap { background: var(--card); border: 1px solid rgba(255, 64, 96, 0.4); border-radius: 14px; overflow: hidden; box-shadow: 0 5px 15px rgba(255, 64, 96, 0.05); }
+.trash-table { width: 100%; border-collapse: collapse; }
+.trash-table th { font-family: var(--font-head); font-size: 11px; color: var(--red); padding: 12px 16px; text-align: left; border-bottom: 1px solid rgba(255, 64, 96, 0.2); background: rgba(255, 64, 96, 0.05); text-transform: uppercase; }
+.trash-table td { padding: 13px 16px; font-size: 13px; border-bottom: 1px solid var(--border); }
+.trash-table tr:hover td { background: rgba(255, 64, 96, 0.02); }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div>
+        <div style="font-family:var(--font-head); font-size:22px; font-weight:700; color:var(--red);">🗑️ System Trash Bin</div>
+        <div style="font-size: 12px; color: var(--muted); margin-top: 5px;">Deleted devices are kept here safely. You can restore them if needed.</div>
+    </div>
+    <div style="font-size: 11px; color: var(--red); font-weight: bold; background: rgba(255, 64, 96, 0.1); padding: 6px 12px; border-radius: 6px; border: 1px solid rgba(255, 64, 96, 0.3); letter-spacing: 1px;">
+        🔒 ADMIN ONLY AREA
+    </div>
+</div>
+
+{% with messages = get_flashed_messages(with_categories=true) %}
+  {% if messages %}
+    {% for category, message in messages %}
+      <div style="background: {% if category == 'success' %}rgba(0,229,160,0.1){% else %}rgba(255,64,96,0.1){% endif %}; border: 1px solid {% if category == 'success' %}var(--green){% else %}var(--red){% endif %}; color: {% if category == 'success' %}var(--green){% else %}var(--red){% endif %}; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; font-weight: bold; text-align: center;">
+        {{ message }}
+      </div>
+    {% endfor %}
+  {% endif %}
+{% endwith %}
+
+<div class="trash-wrap">
+    <table class="trash-table">
+        <thead>
+            <tr><th>ID</th><th>Asset No</th><th>Serial Number</th><th>Brand</th><th>District</th><th>Status</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+            {% for t in tablets %}
+            <tr>
+                <td style="color:var(--muted); font-weight:700; font-size:15px; text-decoration: line-through;">T-{{ t.id }}</td>
+                <td style="font-weight:600; color:var(--muted);">{{ t.asset_no or '-' }}</td>
+                <td style="font-family:monospace; color:var(--muted);">{{ t.serial_number }}</td>
+                <td style="color:var(--muted);">{{ t.brand }}</td>
+                <td style="color:var(--muted);">{{ t.district }}</td>
+                <td><span class="badge" style="background:rgba(255,64,96,0.1); color:var(--red); border: 1px solid rgba(255,64,96,0.3);">Deleted</span></td>
+                <td>
+                    <form action="{{ url_for('restore_tablet', id=t.id) }}" method="POST" style="margin:0;">
+                        <button type="submit" class="btn" style="padding:6px 14px; font-size:12px; background:rgba(0, 229, 160, 0.1); border:1px solid var(--green); color:var(--green); font-weight:bold; cursor:pointer; transition:0.2s;" onmouseover="this.style.background='var(--green)'; this.style.color='#000';" onmouseout="this.style.background='rgba(0, 229, 160, 0.1)'; this.style.color='var(--green)';">
+                            ♻️ Restore
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% endfor %}
+            
+            {% if not tablets %}
+            <tr><td colspan="7" style="text-align:center; color:var(--muted); padding:50px 20px;">
+                <div style="font-size:30px; margin-bottom:10px; opacity:0.5;">🗑️</div>
+                <div style="font-size:14px;">Trash is empty.</div>
+            </td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

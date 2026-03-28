@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TABCORE - Login</title>
+    <style>
+        :root {
+            --bg: #080f1c;
+            --card: #0f2040;
+            --border: #1a3050;
+            --text: #ddeeff;
+            --cyan: #00d4ff;
+            --red: #ff4060;
+            --green: #00e5a0;
+            --muted: #4a6a8a;
+            --font-head: system-ui, -apple-system, sans-serif;
+        }
+        body { margin: 0; padding: 0; background: var(--bg); color: var(--text); font-family: var(--font-head); display: flex; align-items: center; justify-content: center; height: 100vh; flex-direction: column; overflow: hidden;}
+        .login-box { background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 40px; width: 100%; max-width: 400px; box-shadow: 0 10px 30px rgba(0,0,0,0.5); z-index: 10;}
+        .logo-section { text-align: center; margin-bottom: 24px; border-bottom: 1px solid var(--border); padding-bottom: 24px; }
+        
+        .logo-text { font-size: 24px; font-weight: 800; color: var(--cyan); letter-spacing: 1px; display: flex; align-items: center; justify-content: center; gap: 10px; }
+        .sub-text { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 5px; }
+        .version { font-size: 11px; color: var(--muted); letter-spacing: 2px; margin-top: 15px; font-weight: bold; }
+        
+        .alert-error { background: rgba(255, 64, 96, 0.1); border: 1px solid var(--red); color: var(--red); padding: 12px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: bold; margin-bottom: 20px; }
+        .alert-success { background: rgba(0, 229, 160, 0.1); border: 1px solid var(--green); color: var(--green); padding: 12px; border-radius: 8px; text-align: center; font-size: 13px; font-weight: bold; margin-bottom: 20px; }
+        
+        .input-group { position: relative; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; display: flex; align-items: center; padding: 0 15px; margin-bottom: 15px; transition: 0.3s; }
+        .input-group:focus-within { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+        .icon { color: var(--muted); font-size: 16px; width: 20px; }
+        .input-group input { background: transparent; border: none; padding: 15px 10px; color: var(--text); width: 100%; outline: none; font-size: 14px; }
+        
+        /* Eye Icon CSS */
+        .toggle-password {
+            position: absolute; right: 15px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; color: var(--muted); font-size: 16px;
+            cursor: pointer; padding: 0; outline: none; transition: color 0.2s;
+        }
+        .toggle-password:hover { color: var(--cyan); }
+
+        /* Fix for Browser Autofill White Box Issue */
+        input:-webkit-autofill,
+        input:-webkit-autofill:hover, 
+        input:-webkit-autofill:focus, 
+        input:-webkit-autofill:active{
+            -webkit-box-shadow: 0 0 0 30px var(--bg) inset !important;
+            -webkit-text-fill-color: var(--text) !important;
+            transition: background-color 5000s ease-in-out 0s;
+        }
+
+        .options { display: flex; justify-content: space-between; align-items: center; font-size: 12px; margin-bottom: 25px; }
+        .options label { display: flex; align-items: center; gap: 8px; color: var(--text); cursor: pointer; }
+        .options a { color: var(--cyan); text-decoration: none; font-weight: bold; cursor: pointer;}
+        
+        .btn-login { background: var(--cyan); color: #000; border: none; width: 100%; padding: 14px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-login:hover { background: #00b8e6; box-shadow: 0 0 12px rgba(0,212,255,0.4); }
+        
+        .footer-text { text-align: center; font-size: 11px; color: var(--muted); font-weight: bold; margin-top: 25px; letter-spacing: 1px; }
+        .copyright { font-size: 11px; color: var(--muted); margin-top: 30px; font-weight: 600; z-index: 10;}
+
+        /* Forgot Password Modal Styles */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7); backdrop-filter: blur(4px);
+            display: none; justify-content: center; align-items: center; z-index: 2000;
+            opacity: 0; transition: opacity 0.3s ease;
+        }
+        .modal-overlay.active { display: flex; opacity: 1; }
+        .modal-box {
+            background: var(--card); border: 1px solid var(--border); border-radius: 16px;
+            width: 380px; padding: 30px; box-shadow: 0 15px 40px rgba(0,212,255,0.15);
+            text-align: center; transform: scale(0.9); transition: transform 0.3s ease;
+        }
+        .modal-overlay.active .modal-box { transform: scale(1); }
+    </style>
+</head>
+<body>
+
+    <div class="login-box">
+        <div class="logo-section">
+            <div class="logo-text"><span>📱</span> TABCORE</div>
+            <div class="sub-text">Census Statistics System</div>
+            <div class="version">VERSION 2.0 | 2026</div>
+        </div>
+
+        {% if error %}
+        <div class="alert-error">⚠️ {{ error }}</div>
+        {% endif %}
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+                {% if category == 'success' %}
+                    <div class="alert-success">✅ {{ message }}</div>
+                {% else %}
+                    <div class="alert-error">⚠️ {{ message }}</div>
+                {% endif %}
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" action="/login">
+            <div class="input-group">
+                <span class="icon">👤</span>
+                <input type="text" id="username" name="username" placeholder="admin" autocomplete="username" required autofocus>
+            </div>
+            
+            <div class="input-group">
+                <span class="icon">🔒</span>
+                <input type="password" id="passwordInput" name="password" placeholder="••••••••" autocomplete="current-password" required>
+                <button type="button" class="toggle-password" onclick="togglePasswordVisibility()" title="Show/Hide Password">👁️</button>
+            </div>
+
+            <div class="options">
+                <label><input type="checkbox" name="remember" value="yes"> Remember Me</label>
+                <a onclick="openForgotModal()">Forgot Password?</a>
+            </div>
+
+            <button type="submit" class="btn-login">LOGIN</button>
+        </form>
+
+        <div class="footer-text">🔒 AUTHORIZED PERSONNEL ONLY</div>
+    </div>
+
+    <div class="copyright">© 2026 Census Department Sri Lanka. All Rights Reserved.</div>
+
+    <div id="forgotModal" class="modal-overlay">
+        <div class="modal-box">
+            <div style="font-size: 40px; margin-bottom: 10px;">🔐</div>
+            <div style="color: var(--cyan); font-size: 18px; font-weight: bold; margin-bottom: 15px;">Password Reset</div>
+            <div style="color: var(--text); font-size: 13px; line-height: 1.6; margin-bottom: 25px;">
+                For security reasons, password resets are restricted. Please contact your <strong>System Administrator (IT Department)</strong> to issue a new password for your account.
+            </div>
+            <button onclick="closeForgotModal()" style="background: var(--surface); color: var(--text); border: 1px solid var(--border); padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: bold; width: 100%;">Okay, I understand</button>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript for Show/Hide Password
+        function togglePasswordVisibility() {
+            const pwdInput = document.getElementById("passwordInput");
+            const toggleBtn = document.querySelector(".toggle-password");
+            
+            if (pwdInput.type === "password") {
+                pwdInput.type = "text";
+                toggleBtn.innerText = "🙈"; 
+            } else {
+                pwdInput.type = "password";
+                toggleBtn.innerText = "👁️"; 
+            }
+        }
+
+        // JavaScript for Modal
+        function openForgotModal() {
+            const modal = document.getElementById('forgotModal');
+            modal.style.display = 'flex';
+            setTimeout(() => { modal.classList.add('active'); }, 10);
+        }
+        function closeForgotModal() {
+            const modal = document.getElementById('forgotModal');
+            modal.classList.remove('active');
+            setTimeout(() => { modal.style.display = 'none'; }, 300);
+        }
+    </script>
+
+<script>
+    // පරණ ස්ක්‍රෝල් මෙමරි එක මකා දැමීම (අලුතින් ලොග් වෙද්දී සයිඩ්බාර් එක උඩින්ම පෙන්වීමට)
+    sessionStorage.removeItem('sidebarScrollPos');
+</script>
+
+</body>
+</html>

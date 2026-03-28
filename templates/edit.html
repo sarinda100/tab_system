@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .form-group { margin-bottom: 0; }
+  label.field-label { font-size: 11px; color: var(--muted); letter-spacing: 1.5px; display: block; margin-bottom: 7px; font-family: var(--font-head); font-weight: bold; text-transform: uppercase; }
+  input[type="text"], select.main-select {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 14px; color: var(--text); font-size: 14px;
+    font-family: var(--font-body); outline: none; transition: border-color 0.2s;
+  }
+  input[type="text"]:focus, select.main-select:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,212,255,0.1); }
+  .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+  /* Custom Toggle Button Styles from Inspect Form */
+  .toggle-container { margin: 0; padding: 0; }
+  .toggle-radio { display: none; }
+  .btn-toggle {
+      display: inline-block;
+      padding: 8px 15px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease-in-out;
+      background: var(--surface);
+  }
+  .btn-toggle:hover { filter: brightness(1.2); }
+  .toggle-radio[value="Pass"]:checked + .btn-toggle { background: rgba(0,229,160,0.15); border-color: var(--green); color: var(--green); }
+  .toggle-radio[value="Minor"]:checked + .btn-toggle { background: rgba(255,184,48,0.15); border-color: var(--yellow); color: var(--yellow); }
+  .toggle-radio[value="Fail"]:checked + .btn-toggle { background: rgba(255,64,96,0.15); border-color: var(--red); color: var(--red); }
+</style>
+
+<div class="section-card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+    <div style="font-family: var(--font-head); font-size: 20px; font-weight: 700; color: var(--yellow);">✏️ Full Device Edit: T-{{ tablet.id }}</div>
+    <a href="{{ url_for('tablet_timeline', id=tablet.id) }}" class="btn" style="background:var(--surface); border:1px solid var(--border); color:var(--text);">Cancel</a>
+  </div>
+
+  {% if error %}
+  <div style="background: rgba(255,64,96,0.1); border: 1px solid var(--red); border-radius: 8px; padding: 10px; color: var(--red); margin-bottom: 20px; font-size: 14px;">
+    {{ error }}
+  </div>
+  {% endif %}
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      {% for category, message in messages %}
+        {% if category == 'error' %}
+        <div style="background: rgba(255,64,96,0.1); border: 1px solid var(--red); border-radius: 8px; padding: 10px; color: var(--red); margin-bottom: 20px; font-size: 14px;">
+          {{ message }}
+        </div>
+        {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST">
+    
+    <div style="background:var(--surface); padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
+        <div style="font-size:12px; color:var(--cyan); margin-bottom:15px; font-weight:bold;">📝 REGISTRATION DETAILS</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="field-label">DISTRICT OF ORIGIN</label>
+            <select name="district" class="main-select" required>
+              <option value="Anuradhapura" {% if tablet.district|string|trim|lower == 'anuradhapura' %}selected{% endif %}>Anuradhapura</option>
+              <option value="Badulla" {% if tablet.district|string|trim|lower == 'badulla' %}selected{% endif %}>Badulla</option>
+              <option value="Batticaloa" {% if tablet.district|string|trim|lower == 'batticaloa' %}selected{% endif %}>Batticaloa</option>
+              <option value="Colombo" {% if tablet.district|string|trim|lower == 'colombo' %}selected{% endif %}>Colombo</option>
+              <option value="Gampaha" {% if tablet.district|string|trim|lower == 'gampaha' %}selected{% endif %}>Gampaha</option>
+              <option value="Kegalle" {% if tablet.district|string|trim|lower == 'kegalle' %}selected{% endif %}>Kegalle</option>
+              <option value="Polonnaruwa" {% if tablet.district|string|trim|lower == 'polonnaruwa' %}selected{% endif %}>Polonnaruwa</option>
+              <option value="Ratnapura" {% if tablet.district|string|trim|lower == 'ratnapura' %}selected{% endif %}>Ratnapura</option>
+              <option value="Trincomalee" {% if tablet.district|string|trim|lower == 'trincomalee' %}selected{% endif %}>Trincomalee</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="field-label">BRAND</label>
+            <select name="brand" id="brandSelect" class="main-select" required>
+              <option value="Samsung" {% if tablet.brand|string|trim|lower == 'samsung' %}selected{% endif %}>Samsung</option>
+              <option value="Lenovo" {% if tablet.brand|string|trim|lower == 'lenovo' %}selected{% endif %}>Lenovo</option>
+            </select>
+          </div>
+          
+          <div class="form-group">
+            <label class="field-label">MODEL NAME</label>
+            <select name="model" id="modelSelect" class="main-select" required>
+              <option value="">Select Model</option>
+              <option value="SM-T295" {% if tablet.model|string|trim|lower == 'sm-t295' or tablet.model|string|trim|lower == 's - t295' %}selected{% endif %}>SM-T295</option>
+              <option value="TB - 8505X" {% if tablet.model|string|trim|lower == 'tb - 8505x' or tablet.model|string|trim|lower == 'tb-8505x' %}selected{% endif %}>TB - 8505X</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">SERIAL NUMBER</label>
+            <input name="serial_number" type="text" value="{{ tablet.serial_number }}" 
+                   pattern="[A-Za-z0-9]{8,15}" minlength="8" maxlength="15"
+                   title="Serial Number must be 8-15 characters long. Only letters and numbers allowed. No spaces."
+                   oninput="this.value = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase()" required/>
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">ASSET NUMBER</label>
+            <input name="asset_no" type="text" value="{{ tablet.asset_no or '' }}" placeholder="e.g. 10710" />
+          </div>
+
+          <div class="form-group">
+            <label class="field-label">IMEI NUMBER</label>
+            <input name="imei_number" type="text" value="{{ tablet.imei_number }}" 
+                   pattern="\d{15}" minlength="15" maxlength="15" 
+                   title="IMEI must be exactly 15 digits. No letters or spaces allowed."
+                   oninput="this.value = this.value.replace(/[^0-9]/g, '')" required/>
+          </div>
+        </div>
+
+        <div class="divider" style="background:rgba(255,255,255,0.05);"></div>
+        
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="field-label">🔌 CHARGING ADAPTER</label>
+            <select name="charger_status" class="main-select" required>
+              <option value="Good" {% if tablet.charger_status == 'Good' %}selected{% endif %}>✅ Present & Good</option>
+              <option value="Damaged" {% if tablet.charger_status == 'Damaged' %}selected{% endif %}>⚠️ Damaged</option>
+              <option value="Missing" {% if tablet.charger_status == 'Missing' %}selected{% endif %}>❌ Missing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="field-label">🔗 DATA CABLE (USB-C)</label>
+            <select name="cable_status" class="main-select" required>
+              <option value="Good" {% if tablet.cable_status == 'Good' %}selected{% endif %}>✅ Present & Good</option>
+              <option value="Damaged" {% if tablet.cable_status == 'Damaged' %}selected{% endif %}>⚠️ Damaged</option>
+              <option value="Missing" {% if tablet.cable_status == 'Missing' %}selected{% endif %}>❌ Missing</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="field-label">📌 SIM EJECTOR PIN</label>
+            <select name="simpin_status" class="main-select" required>
+              <option value="Good" {% if tablet.simpin_status == 'Good' %}selected{% endif %}>✅ Present & Good</option>
+              <option value="Missing" {% if tablet.simpin_status == 'Missing' %}selected{% endif %}>❌ Missing</option>
+            </select>
+          </div>
+                         
+          <div class="form-group">
+            <label class="field-label">📄 DELIVERY NOTE</label>
+            <select name="doc_status" class="main-select" required>
+              <option value="Good" {% if tablet.doc_status == 'Good' %}selected{% endif %}>✅ Present & Signed</option>
+              <option value="Missing" {% if tablet.doc_status == 'Missing' %}selected{% endif %}>❌ Missing</option>
+            </select>
+          </div>
+        </div>
+    </div>
+
+    <div style="background:var(--surface); padding:25px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
+        <div style="font-size:12px; color:var(--cyan); margin-bottom:20px; font-weight:bold;">🔍 PHYSICAL CONDITION & INSPECTION DATA</div>
+        
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            {% set items = [
+                ('Display Quality', 'display'), ('Touch Response', 'touch'), ('Battery Health', 'battery'),
+                ('Both Cameras', 'cameras'), ('WiFi Connection', 'wifi'), ('Bluetooth', 'bt'),
+                ('GPS / Location', 'gps'), ('Speaker Audio', 'speaker'), ('Microphone', 'mic'),
+                ('Charging Port', 'charging'), ('Power Button', 'p_btn'), ('SIM Slot', 'sim')
+            ] %}
+
+            {% for label, name in items %}
+            <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; border-bottom:1px dashed rgba(26,48,80,0.5);">
+                <span style="font-size:14px; font-weight:500;">{{ label }}</span>
+                <div style="display:flex; gap:8px;">
+                    <label class="toggle-container">
+                        <input type="radio" class="toggle-radio" name="{{ name }}" value="Pass" {% if tablet.details.get(name) == 'Pass' or tablet.details.get(name) == 'pass' or tablet.status == 'Pending' %}checked{% endif %}>
+                        <span class="btn-toggle">✓ Pass</span>
+                    </label>
+                    <label class="toggle-container">
+                        <input type="radio" class="toggle-radio" name="{{ name }}" value="Minor" {% if tablet.details.get(name) == 'Minor' or tablet.details.get(name) == 'partial' %}checked{% endif %}>
+                        <span class="btn-toggle">~ Minor</span>
+                    </label>
+                    <label class="toggle-container">
+                        <input type="radio" class="toggle-radio" name="{{ name }}" value="Fail" {% if tablet.details.get(name) == 'Fail' or tablet.details.get(name) == 'fail' %}checked{% endif %}>
+                        <span class="btn-toggle">✕ Fail</span>
+                    </label>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+ <div style="background:var(--surface); padding:20px; border-radius:12px; border:1px solid rgba(0, 212, 255, 0.3); margin-bottom:20px; border-left: 4px solid var(--cyan);">
+            <div style="font-size:12px; color:var(--cyan); margin-bottom:10px; font-weight:bold; letter-spacing:1px;">⚡ BATTERY 20% DRAIN TEST</div>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <div style="flex:1; font-size:13px; color:var(--text); line-height:1.5;">
+                    Update the recorded time taken for the battery to drop by 20%. <br>
+                    <span style="color:var(--muted); font-size:11px;">(වීඩියෝ එකක් ප්ලේ කරලා බැටරිය 20% ක් බහින්න යන කාලය වෙනස් කරන්න)</span>
+                </div>
+                <div style="flex-shrink:0;">
+                    <input type="text" name="battery_drain_time" value="{{ tablet.battery_drain_time if tablet.battery_drain_time and tablet.battery_drain_time != '-' else '' }}" placeholder="e.g. 45 Mins" required style="width:140px; background:var(--bg); border:1px solid var(--border); color:var(--yellow); padding:12px; border-radius:8px; font-weight:bold; text-align:center; font-size:14px; outline:none;">
+                </div>
+            </div>
+        </div>
+
+
+    <div style="background:var(--surface); padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
+        <div style="font-size:12px; color:var(--muted); margin-bottom:10px; text-transform:uppercase;">Inspector Notes / අමතර සටහන්</div>
+        <textarea name="inspector_notes" rows="3" placeholder="Any issues, damage details, special observations..." style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:15px; border-radius:8px; font-family:inherit; resize:vertical;">{{ tablet.details.get('inspector_notes', '') }}</textarea>
+    </div>
+
+    <div class="section-card" style="background:var(--surface); border-color:var(--yellow);">
+        <div style="margin-bottom:15px; font-weight:700; color:var(--yellow);">FINAL INSPECTION VERDICT (OVERALL STATUS)</div>
+        <div style="display:flex; gap:20px;">
+            <label style="flex:1; background:rgba(0,229,160,0.1); padding:15px; border-radius:10px; border:1px solid var(--green); cursor:pointer; text-align:center;">
+                <input type="radio" name="verdict" value="Passed" {% if tablet.status == 'Passed' or tablet.status == 'Pending' %}checked{% endif %}> <strong>✅ Passed</strong>
+            </label>
+            <label style="flex:1; background:rgba(255,184,48,0.1); padding:15px; border-radius:10px; border:1px solid var(--yellow); cursor:pointer; text-align:center;">
+                <input type="radio" name="verdict" value="Minor Issues" {% if tablet.status == 'Minor Issues' %}checked{% endif %}> <strong>⚠️ Minor Issues</strong>
+            </label>
+            <label style="flex:1; background:rgba(255,64,96,0.1); padding:15px; border-radius:10px; border:1px solid var(--red); cursor:pointer; text-align:center;">
+                <input type="radio" name="verdict" value="Defective" {% if tablet.status == 'Defective' %}checked{% endif %}> <strong>❌ Defective</strong>
+            </label>
+        </div>
+        <button type="submit" class="btn btn-primary" style="width:100%; margin-top:20px; padding:15px; font-size:16px; background:var(--yellow); color:#000; border:none; font-weight:bold;">UPDATE ALL DEVICE DATA</button>
+    </div>
+  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const brandSelect = document.getElementById('brandSelect');
+    const modelSelect = document.getElementById('modelSelect');
+    const savedModel = "{{ tablet.model }}"; 
+    
+    const brandModels = {
+        'Samsung': ['SM-T295'],
+        'Lenovo': ['TB - 8505X']
+    };
+
+    function updateModels(isInitialLoad = false) {
+        const selectedBrand = brandSelect.value;
+        modelSelect.innerHTML = '<option value="">Select Model</option>';
+        
+        if (selectedBrand && brandModels[selectedBrand]) {
+            brandModels[selectedBrand].forEach(function(model) {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                
+                if (isInitialLoad) {
+                    if (model === savedModel || (model === 'SM-T295' && savedModel === 'S - T295')) {
+                        option.selected = true;
+                    }
+                }
+                
+                modelSelect.appendChild(option);
+            });
+        }
+    }
+
+    brandSelect.addEventListener('change', function() {
+        updateModels(false);
+    });
+
+    updateModels(true);
+});
+</script>
+{% endblock %}

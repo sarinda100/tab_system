@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block content %}
+<style>
+.metrics-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px; }
+.metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; position: relative; overflow: hidden; border-top: 3px solid var(--accent-color); }
+.metric-value { font-family: var(--font-head); font-size: 36px; font-weight: 700; color: var(--accent-color); line-height: 1; }
+.metric-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+</style>
+
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+    <div style="font-family:var(--font-head); font-size:22px; font-weight:700; color:var(--text);">
+        📦 Device Accessories Log
+    </div>
+    
+    {% if current_user.role == 'Admin' %}
+    <a href="{{ url_for('export_accessories') }}" class="btn btn-primary" style="background: var(--surface); border: 1px solid var(--cyan); color: var(--cyan);">
+        📥 Export Accessories Report
+    </a>
+    {% endif %}
+</div>
+
+<div class="metrics-grid">
+    <div class="metric-card" style="--accent-color: var(--green)">
+        <div class="metric-value">{{ chargers }}</div>
+        <div class="metric-label">Chargers Received</div>
+    </div>
+    <div class="metric-card" style="--accent-color: var(--cyan)">
+        <div class="metric-value">{{ cables }}</div>
+        <div class="metric-label">Data Cables Received</div>
+    </div>
+    <div class="metric-card" style="--accent-color: var(--yellow)">
+        <div class="metric-value">{{ simpins }}</div>
+        <div class="metric-label">SIM Pins Received</div>
+    </div>
+</div>
+
+<div class="table-wrap">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>DEVICE INFO</th><th>Brand</th><th>District</th><th>Registered By</th>
+                <th>Charger</th><th>Data Cable</th><th>SIM Pin</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in tablets %}
+            <tr>
+                <td>
+                    <div style="color:var(--cyan);font-weight:700;font-size:15px; margin-bottom:2px;">T-{{ t.id }}</div>
+                    <div style="font-size:12px; color:var(--yellow); font-weight:bold; margin-bottom:2px;">Asset: {{ t.asset_no or '-' }}</div>
+                    <div style="font-size:11px; color:var(--muted); font-family:var(--font-body); letter-spacing:0.5px;">SN: <span style="color:#e2e8f0;">{{ t.serial_number }}</span></div>
+                </td>
+                <td>{{ t.brand }}</td>
+                <td>{{ t.district }}</td>
+                <td><span class="tech-tag">👤 {{ t.registered_by }}</span></td>
+                <td>
+                    {% if t.charger_status == 'Good' or t.charger_status == 'good' %}<span class="badge badge-good">✅ Good</span>
+                    {% elif t.charger_status == 'Damaged' or t.charger_status == 'damaged' %}<span class="badge badge-pending">⚠️ Damaged</span>
+                    {% else %}<span class="badge badge-defective">❌ Missing</span>{% endif %}
+                </td>
+                <td>
+                    {% if t.cable_status == 'Good' or t.cable_status == 'good' %}<span class="badge badge-good">✅ Good</span>
+                    {% elif t.cable_status == 'Damaged' or t.cable_status == 'damaged' %}<span class="badge badge-pending">⚠️ Damaged</span>
+                    {% else %}<span class="badge badge-defective">❌ Missing</span>{% endif %}
+                </td>
+                <td>
+                    {% if t.simpin_status == 'Good' or t.simpin_status == 'good' %}<span class="badge badge-good">✅ Good</span>
+                    {% elif t.simpin_status == 'Damaged' or t.simpin_status == 'damaged' %}<span class="badge badge-pending">⚠️ Damaged</span>
+                    {% else %}<span class="badge badge-defective">❌ Missing</span>{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            {% if not tablets %}
+            <tr><td colspan="7" style="text-align:center;color:var(--muted);padding:20px;">No accessories recorded yet.</td></tr>
+            {% endif %}
+        </tbody>
+    </table>
+<div style="text-align: center; margin-top: 20px;">
+    {% if page > 1 %}
+        <a href="{{ request.path }}?page={{ page - 1 }}" class="btn" style="background: var(--surface); border: 1px solid var(--cyan); color: var(--cyan); margin-right: 10px;">Previous</a>
+    {% endif %}
+    
+    <span style="color: white; font-weight: bold;">Page {{ page }} of {{ total_pages }}</span>
+    
+    {% if page < total_pages %}
+        <a href="{{ request.path }}?page={{ page + 1 }}" class="btn" style="background: var(--surface); border: 1px solid var(--cyan); color: var(--cyan); margin-left: 10px;">Next</a>
+    {% endif %}
+</div>
+</div>
+{% endblock %}

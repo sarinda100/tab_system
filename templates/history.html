@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 style="font-family:var(--font-head); margin-bottom:20px;">📂 Batch History (Monthly)</h2>
+<div class="table-wrap">
+  <table class="data-table">
+    <thead>
+        <tr>
+            <th>BATCH MONTH</th>
+            <th>TOTAL RECEIVED</th>
+            <th>INSPECTED</th>
+            <th>MINOR ISSUES</th>
+            <th>DEFECTIVE</th>
+            <th>PASSED / DISPATCHED</th>
+        </tr>
+    </thead>
+    <tbody>
+      {% for b in batches %}
+      <tr>
+        <td style="color:var(--cyan);font-weight:700;font-size:15px;">📅 {{ b.batch_month }}</td>
+        <td>{{ b.total }}</td>
+        <td>{{ b.inspected }}</td>
+        <td style="color:var(--yellow); font-weight:bold;">{{ b.minor_issues }}</td>
+        <td style="color:var(--red); font-weight:bold;">{{ b.defective }}</td>
+        <td style="color:var(--green); font-weight:bold;">{{ b.dispatched }}</td>
+      </tr>
+      {% endfor %}
+      {% if not batches %}
+      <tr><td colspan="6" style="text-align:center;color:var(--muted);padding:20px">No history records found.</td></tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% block content %}
+
+<style>
+    /* Custom Toggle Button Styles */
+    .toggle-container { margin: 0; padding: 0; }
+    .toggle-radio { display: none; }
+    .btn-toggle {
+        display: inline-block;
+        padding: 8px 15px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        background: var(--surface);
+    }
+    
+    /* Hover Effects */
+    .btn-toggle:hover { filter: brightness(1.2); }
+
+    /* Checked States */
+    .toggle-radio[value="Pass"]:checked + .btn-toggle {
+        background: rgba(0,229,160,0.15);
+        border-color: var(--green);
+        color: var(--green);
+    }
+    .toggle-radio[value="Minor"]:checked + .btn-toggle {
+        background: rgba(255,184,48,0.15);
+        border-color: var(--yellow);
+        color: var(--yellow);
+    }
+    .toggle-radio[value="Fail"]:checked + .btn-toggle {
+        background: rgba(255,64,96,0.15);
+        border-color: var(--red);
+        color: var(--red);
+    }
+</style>
+
+<div class="section-card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+        <h2 style="color:var(--cyan); font-family:var(--font-head);">🔍 Device Inspection: T-{{ tablet.id }}</h2>
+        <span class="badge badge-locked" style="background:var(--card2); border:1px solid var(--border);">S/N: {{ tablet.serial_number }}</span>
+    </div>
+
+    <form method="POST">
+        <div style="background:var(--surface); padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px; display:flex; justify-content:space-between; align-items:center;">
+            <div>
+                <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">Brand</div>
+                <div style="font-weight:600; font-size:15px;">{{ tablet.brand }}</div>
+            </div>
+            <div>
+                <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">District</div>
+                <div style="font-weight:600; font-size:15px;">{{ tablet.district }}</div>
+            </div>
+            <div>
+                <div style="font-size:11px; color:var(--muted); text-transform:uppercase;">IMEI Number</div>
+                <div style="font-weight:600; font-size:15px;">{{ tablet.imei_number }}</div>
+            </div>
+        </div>
+
+        <div style="background:var(--surface); padding:25px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
+            <div style="font-size:12px; color:var(--muted); margin-bottom:20px; border-bottom:1px solid var(--border); padding-bottom:10px;">PHYSICAL CONDITION (12 ITEMS)</div>
+            
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                {% set items = [
+                    ('Display Quality', 'display'), ('Touch Response', 'touch'), ('Battery Health', 'battery'),
+                    ('Both Cameras', 'cameras'), ('WiFi Connection', 'wifi'), ('Bluetooth', 'bt'),
+                    ('GPS / Location', 'gps'), ('Speaker Audio', 'speaker'), ('Microphone', 'mic'),
+                    ('Charging Port', 'charging'), ('Power Button', 'p_btn'), ('SIM Slot', 'sim')
+                ] %}
+
+                {% for label, name in items %}
+                <div style="display:flex; justify-content:space-between; align-items:center; padding-bottom:10px; border-bottom:1px dashed rgba(26,48,80,0.5);">
+                    <span style="font-size:14px; font-weight:500;">{{ label }}</span>
+                    <div style="display:flex; gap:8px;">
+                        <label class="toggle-container">
+                            <input type="radio" class="toggle-radio" name="{{ name }}" value="Pass" checked>
+                            <span class="btn-toggle">✓ Pass</span>
+                        </label>
+                        <label class="toggle-container">
+                            <input type="radio" class="toggle-radio" name="{{ name }}" value="Minor">
+                            <span class="btn-toggle">~ Minor</span>
+                        </label>
+                        <label class="toggle-container">
+                            <input type="radio" class="toggle-radio" name="{{ name }}" value="Fail">
+                            <span class="btn-toggle">✕ Fail</span>
+                        </label>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+
+       <div style="background:var(--surface); padding:20px; border-radius:12px; border:1px solid rgba(0, 212, 255, 0.3); margin-bottom:20px; border-left: 4px solid var(--cyan);">
+            <div style="font-size:12px; color:var(--cyan); margin-bottom:10px; font-weight:bold; letter-spacing:1px;">⚡ BATTERY 20% DRAIN TEST</div>
+            <div style="display:flex; align-items:center; gap:15px;">
+                <div style="flex:1; font-size:13px; color:var(--text); line-height:1.5;">
+                    Play a video with Bluetooth & GPS enabled. Record the time taken for the battery to drop by 20%. <br>
+                    <span style="color:var(--muted); font-size:11px;">(වීඩියෝ එකක් ප්ලේ කරලා බැටරිය 20% ක් බහින්න යන කාලය විනාඩි වලින් ඇතුලත් කරන්න)</span>
+                </div>
+                <div style="flex-shrink:0;">
+                    <input type="text" name="battery_drain_time" placeholder="e.g. 45 Mins" required style="width:140px; background:var(--bg); border:1px solid var(--border); color:var(--yellow); padding:12px; border-radius:8px; font-weight:bold; text-align:center; font-size:14px; outline:none;">
+                </div>
+            </div>
+        </div>
+
+        <div style="background:var(--surface); padding:20px; border-radius:12px; border:1px solid var(--border); margin-bottom:20px;">
+            <div style="font-size:12px; color:var(--muted); margin-bottom:10px; text-transform:uppercase;">Inspector Notes / අමතර සටහන්</div>
+            <textarea name="inspector_notes" rows="3" placeholder="Any issues, damage details, special observations..." style="width:100%; background:var(--bg); border:1px solid var(--border); color:var(--text); padding:15px; border-radius:8px; font-family:inherit; resize:vertical;"></textarea>
+        </div>
+
+        <div class="section-card" style="background:var(--surface); border-color:var(--cyan);">
+            <div style="margin-bottom:15px; font-weight:700;">FINAL INSPECTION VERDICT</div>
+            <div style="display:flex; gap:20px;">
+                <label style="flex:1; background:rgba(0,229,160,0.1); padding:15px; border-radius:10px; border:1px solid var(--green); cursor:pointer; text-align:center;">
+                    <input type="radio" name="verdict" value="Passed" checked> <strong>✅ Passed</strong>
+                </label>
+                <label style="flex:1; background:rgba(255,184,48,0.1); padding:15px; border-radius:10px; border:1px solid var(--yellow); cursor:pointer; text-align:center;">
+                    <input type="radio" name="verdict" value="Minor Issues"> <strong>⚠️ Minor Issues</strong>
+                </label>
+                <label style="flex:1; background:rgba(255,64,96,0.1); padding:15px; border-radius:10px; border:1px solid var(--red); cursor:pointer; text-align:center;">
+                    <input type="radio" name="verdict" value="Defective"> <strong>❌ Defective</strong>
+                </label>
+            </div>
+            <button type="submit" class="btn btn-primary" style="width:100%; margin-top:20px; padding:15px; font-size:16px;">SUBMIT INSPECTION REPORT</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
