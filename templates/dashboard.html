@@ -2,7 +2,7 @@
 {% block content %}
 <script src="{{ url_for('static', filename='chart.js') }}"></script>
 <style>
-  .metrics-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 16px; margin-bottom: 24px; }
   .metric-card { background: var(--card); border: 1px solid var(--border); border-radius: 14px; padding: 20px; position: relative; overflow: hidden; border-top: 3px solid var(--accent-color); }
   .metric-card::after { content: ''; position: absolute; top: -30px; right: -30px; width: 80px; height: 80px; border-radius: 50%; background: var(--accent-color); opacity: 0.05; }
   .metric-value { font-family: var(--font-head); font-size: 36px; font-weight: 700; color: var(--accent-color); line-height: 1; }
@@ -82,6 +82,11 @@
     <div class="metric-label">Defective Tablets</div>
     <div class="metric-change" style="color:var(--yellow)">{{ defective }} flagged total</div>
   </div>
+  <div class="metric-card" style="--accent-color: #64748b;">
+    <div class="metric-value">{{ doa_count }}</div>
+    <div class="metric-label">DEAD DEVICES (DOA)</div>
+    <div class="metric-change" style="color: #94a3b8;">💀 Unrepairable Units</div>
+</div>
 </div>
 
 <div class="charts-row">

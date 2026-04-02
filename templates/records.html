@@ -37,7 +37,9 @@
                         <span class="badge" style="background:rgba(255,184,48,0.15);color:var(--yellow)">⚠️ Minor</span>
                     {% elif t.status == 'Defective' %}
                         <span class="badge" style="background:rgba(255,64,96,0.15);color:var(--red)">❌ Defective</span>
-                    {% endif %}
+                    {% elif t.status == 'Dead Device (DOA)' %}
+                        <span class="badge" style="background:rgba(15,23,42,0.8);color:#94a3b8;border:1px solid #475569">💀 Dead (DOA)</span>
+                        {% endif %}
                 </td>
                 <td><span class="tech-tag">👤 {{ t.inspected_by }}</span></td>
             </tr>

@@ -31,7 +31,7 @@ select, input { width: 100%; background: var(--surface); border: 1px solid var(-
 .dropdown-content { display: none; position: absolute; right: 0; top: 110%; background-color: var(--surface); min-width: 260px; box-shadow: 0px 8px 20px 0px rgba(0,0,0,0.6); z-index: 100; border: 1px solid var(--cyan); border-radius: 8px; overflow: hidden; }
 .dropdown-content button { width: 100%; text-align: left; background: none; color: #ddeeff; padding: 14px 16px; border: none; border-bottom: 1px solid var(--border); display: block; font-size: 13px; transition: 0.2s; cursor: pointer; font-family: var(--font-head); }
 .dropdown-content button:last-child { border-bottom: none; }
-.dropdown-content button:hover { background-color: #1a3050; color: var(--cyan); padding-left: 22px; } /* Hover කරද්දී පොඩ්ඩක් ඉස්සරහට එන පට්ට Effect එකක් */
+.dropdown-content button:hover { background-color: #1a3050; color: var(--cyan); padding-left: 22px; }
 .dropdown:hover .dropdown-content { display: block; }
 </style>
 
@@ -46,7 +46,7 @@ select, input { width: 100%; background: var(--surface); border: 1px solid var(-
            <div class="dropdown">
             <button type="button" class="dropbtn">📥 Export Reports ▼</button>
             <div class="dropdown-content">
-                <button type="submit" formaction="/export_filtered">🎯 Export Filtered Data (CSV)</button>
+                <button type="submit" formaction="/export_filtered">🎯 Export Filtered Data (Excel)</button>
                 <button type="submit" formaction="/export_sinhala_word">📝 Quality Inspection (Word)</button>
                 <button type="submit" formaction="/generate_handover_pdf">📦 Stores Handover Report (PDF)</button>
                 <button type="submit" formaction="/generate_full_inspection_pdf">🔍 Full Inspection & Analytics (PDF)</button>
@@ -75,11 +75,13 @@ select, input { width: 100%; background: var(--surface); border: 1px solid var(-
             </select>
         </div>
         <div>
-            <label>DEVICE STATUS</label>
+            <label>INSPECTION STATUS</label>
             <select name="status">
-                <option value="All Statuses">All Statuses</option>
-                <option value="Passed" {% if req.get('status') == 'Passed' %}selected{% endif %}>Passed</option>
-                <option value="Defective" {% if req.get('status') == 'Defective' %}selected{% endif %}>Defective</option>
+                <option value="">All Statuses</option>
+                <option value="Passed" {% if req.get('status') == 'Passed' %}selected{% endif %}>✅ Passed</option>
+                <option value="Minor Issues" {% if req.get('status') == 'Minor Issues' %}selected{% endif %}>⚠️ Minor Issues</option>
+                <option value="Defective" {% if req.get('status') == 'Defective' %}selected{% endif %}>❌ Defective</option>
+                <option value="Dead Device (DOA)" {% if req.get('status') == 'Dead Device (DOA)' %}selected{% endif %}>💀 Dead Device (DOA)</option>
             </select>
         </div>
         <div>
@@ -132,6 +134,7 @@ select, input { width: 100%; background: var(--surface); border: 1px solid var(-
         <td>
             {% if t.status == 'Passed' %}<span class="badge badge-good">Passed</span>
             {% elif t.status == 'Defective' %}<span class="badge badge-defective">Defective</span>
+            {% elif t.status == 'Dead Device (DOA)' %}<span class="badge" style="background:rgba(15,23,42,0.8);color:#94a3b8;border:1px solid #475569">💀 Dead (DOA)</span>
             {% else %}<span class="badge badge-pending">{{ t.status }}</span>{% endif %}
         </td>
         

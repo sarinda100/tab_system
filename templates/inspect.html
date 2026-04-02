@@ -37,6 +37,12 @@
         border-color: var(--red);
         color: var(--red);
     }
+    /* ADDED: N/A Button Style */
+    .toggle-radio[value="N/A"]:checked + .btn-toggle {
+        background: rgba(100,116,139,0.15);
+        border-color: #64748b;
+        color: #94a3b8;
+    }
 </style>
 
 <div class="section-card">
@@ -88,6 +94,10 @@
                             <input type="radio" class="toggle-radio" name="{{ name }}" value="Fail">
                             <span class="btn-toggle">✕ Fail</span>
                         </label>
+                        <label class="toggle-container">
+                            <input type="radio" class="toggle-radio" name="{{ name }}" value="N/A">
+                            <span class="btn-toggle">- N/A</span>
+                        </label>
                     </div>
                 </div>
                 {% endfor %}
@@ -124,6 +134,9 @@
                 </label>
                 <label style="flex:1; background:rgba(255,64,96,0.1); padding:15px; border-radius:10px; border:1px solid var(--red); cursor:pointer; text-align:center;">
                     <input type="radio" name="verdict" value="Defective"> <strong>❌ Defective</strong>
+                </label>
+                <label style="flex:1; background:rgba(15,23,42,0.5); padding:15px 5px; border-radius:10px; border:1px solid #475569; cursor:pointer; text-align:center; font-size:14px; color:#94a3b8;">
+                    <input type="radio" name="verdict" value="Dead Device (DOA)"> <strong>💀 Dead (DOA)</strong>
                 </label>
             </div>
             <button type="submit" class="btn btn-primary" style="width:100%; margin-top:20px; padding:15px; font-size:16px;">SUBMIT INSPECTION REPORT</button>
